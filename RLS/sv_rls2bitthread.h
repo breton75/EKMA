@@ -54,6 +54,7 @@ class SvRls2bitThread : public QThread
     Q_OBJECT
   public:
     explicit SvRls2bitThread(void* buffer,
+                             quint32 ip,
                                 quint16 port,
                                 QObject *parent = 0);
     
@@ -64,15 +65,17 @@ class SvRls2bitThread : public QThread
     int* lastLineNum;
     
     bool isPlaying() { return _playing; }
-    bool isFinished() { return _finished; }
+//    bool isFinished() { return _finished; }
 
   private:
     QUdpSocket *socket;
-    quint16 port;
+    
+    quint32 _ip;
+    quint16 _port;
 //    QByteArray *datagram;
-    int linesCount;
-    int pointPerLine;
-    int bitPerPoint;
+    int _linesCount;
+    int _pointPerLine;
+    int _bitPerPoint;
     bool _playing = false;
     bool _finished = false;
     

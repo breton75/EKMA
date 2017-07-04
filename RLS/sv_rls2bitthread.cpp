@@ -2,25 +2,27 @@
 
 /** *******  данные от РЛС  ************ **/
 SvRls2bitThread::SvRls2bitThread(void *buffer,
-                                       quint16 port,
-                                       QObject *parent) 
+                                 quint32 ip,
+                                 quint16 port,
+                                 QObject *parent) 
 {
-  this->setParent(parent);
+  setParent(parent);
   
-  this->port = port;
+  _ip = ip;
+  _port = port;
+  
   this->buffer = buffer;
 }
 
 SvRls2bitThread::~SvRls2bitThread()
 {
-  stop();
+//  stop();
   deleteLater();
 }
 
 void SvRls2bitThread::stop() 
 {
   _playing = false;
-  while(!_finished) QApplication::processEvents();
 }
 
 void SvRls2bitThread::run()
@@ -30,7 +32,7 @@ void SvRls2bitThread::run()
   
 //  QUdpSocket* 
   socket = new QUdpSocket();
-  socket->bind(port);
+  socket->bind(QHostAddress(_ip), _port);
   
   void* datagram = malloc(0xFFFF); // максимальный возможный размер датаграммы
   
@@ -46,6 +48,7 @@ void SvRls2bitThread::run()
 
   qint64 datagram_size;
   qint64 aval;
+  
   int offset = 0;
   while(_playing)
   {
