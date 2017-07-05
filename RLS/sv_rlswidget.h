@@ -15,6 +15,7 @@
 #include <QDebug>
 #include <QTimer>
 #include <qmath.h>
+#include <QConicalGradient>
 
 //#include <QSqlQuery>
 //#include <QSqlError>
@@ -45,23 +46,70 @@ struct SvRlsWidgetParams {
   qint16 port = 0;
   QDate fromdate = QDate();
   QTime fromtime = QTime();
-  int radius = -1;
+//  int radius = -1;
   QColor painter_bkgnd_color = QColor();
   QColor painter_data_color = QColor();
   
   bool start_on_create = true;
   
-  int window_width = 640;
-  int window_height = 640;
-  int img_resolution = 640;
-  int draw_points_per_line = MAX_LINE_SIZE;
+//  int window_width = 640;
+//  int window_height = 640;
+  int display_point_count = 640;
+  int line_point_count = MAX_LINE_POINT_COUNT;
   
   bool no_controls = false;
   bool autostart = true;
   
+  int grid_line_count = 12;
+  
 };
 
-class SvRlsPainter;
+//class SvRlsPainter;
+
+
+class SvRlsPainter : public QWidget
+{
+  Q_OBJECT
+  
+  public:
+    
+    SvRlsPainter(void *buffer, const SvRlsWidgetParams *params);
+    
+    ~SvRlsPainter() { _timer.stop(); deleteLater(); }
+    
+    void setBuffer(void *buffer) { _buffer = buffer; }
+    
+    void clear() { _img.fill(_params->painter_bkgnd_color); }
+    
+public slots:
+    void drawLine(int lineNum, quint16 discret);
+    
+  private:
+    void *_buffer = nullptr;
+    QImage _img;
+   
+    QTimer _timer;
+    
+    qreal _radius;
+    
+    const SvRlsWidgetParams *_params;
+    
+    quint16 _current_discret = 0;
+    
+    qreal _data_angle_step;
+    qreal _indicator_angle_step;
+    
+    QPointF _indicator_center;
+    
+    QConicalGradient _indicator;
+    
+        
+  protected:
+    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    
+  
+};
+
 
 class SvRlsWidget: public QWidget
 {
@@ -72,8 +120,10 @@ public:
   
   ~SvRlsWidget();
   
+  SvRlsPainter *painter() { return _rls_painter; }
+  SvRlsWidgetParams params() { return _params; }
+  
 public slots:
-  void drawLine(int lineNum);
   void started();
   void stopped();
   
@@ -84,19 +134,23 @@ signals:
   
 private slots:
   void on__bnStartStop_clicked();
+  void on__sliderLinePointCount_valueChanged(int line_point_count) { _params.line_point_count = line_point_count; _rls_painter->clear(); }
+  
+  void on__cbPaintBkgndColor_currentIndexChanged(int index) { _params.painter_bkgnd_color = QColor(_cbPaintBkgndColor->itemText(index)); _rls_painter->clear(); }
+  void  on__cbPaintDataColor_currentIndexChanged(int index) { _params.painter_data_color = QColor(_cbPaintDataColor->itemText(index));   _rls_painter->clear(); }
   
 private:
   SvRlsWidgetParams _params;
-  
-  void *_buffer;
-  QImage _img;
+  void *_buffer = nullptr;
   
   QString _caption;
-  float _angle;
+  qreal _angle_step;
+  qreal _current_angle = 0;
+  int _current_line_num = 0;
+  
   int _draw_points_per_line;
 
-  int _img_resolution;
-  
+ 
   void _setupUI();
   
   /** *********  Элементы управления *********** **/
@@ -130,9 +184,9 @@ private:
   QTimeEdit *_timeArchBegin;
   QGroupBox *_gbPaintParams;
   QVBoxLayout *_vlayPaintParams;
-  QHBoxLayout *_hlayPaintRadius;
-  QLabel *_labelPaintRadius;
-  QSlider *_sliderPaintRadius;
+  QHBoxLayout *_hlayLinePointCount;
+  QLabel *_labelLinePointCount;
+  QSlider *_sliderLinePointCount;
   QHBoxLayout *_hlayPaintBkgndColor;
   QLabel *_labelPaintBkgndColor;
   QComboBox *_cbPaintBkgndColor;
@@ -145,33 +199,5 @@ private:
 };
 
 
-class SvRlsPainter : public QWidget
-{
-  Q_OBJECT
-  
-  public:
-    
-    SvRlsPainter(QImage *img,
-                 int draw_points_per_line = MAX_LINE_SIZE);
-    
-    ~SvRlsPainter() { _timer.stop(); deleteLater(); }
-    
-    
-  private:
-    QImage *_img;
-    
-    QTimer _timer;
-    float _angle;
-    int _draw_points_per_line;
-
-    int _img_resolution;
-        
-  protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-    
-  public slots:
-    void setResolution(int resolution) { _draw_points_per_line = resolution; }
-    
-};
 
 #endif // SVRLWIDGET_H

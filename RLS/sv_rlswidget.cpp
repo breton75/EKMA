@@ -6,17 +6,14 @@
 
 SvRlsWidget::SvRlsWidget(void *buffer, SvRlsWidgetParams &params)
 {
+  _params = params;
   _buffer = buffer;
-  _img_resolution = params.img_resolution;
-  _draw_points_per_line = params.draw_points_per_line;
-  _angle = double(2 * M_PI) / double(AZIMUTHS_COUNT);
   
-  _img = QImage(_img_resolution, _img_resolution, QImage::Format_RGB888);
+  resize(_params.display_point_count, _params.display_point_count);
   
   _setupUI();  
   
-  _params = params;
-  
+
   QStringList colorNames = QColor::colorNames();
 
   for (int i = 0; i < colorNames.size(); ++i) {
@@ -34,11 +31,16 @@ SvRlsWidget::SvRlsWidget(void *buffer, SvRlsWidgetParams &params)
   _spinPort->setValue(_params.port);
   _dateArchBegin->setDate(_params.fromdate);
   _timeArchBegin->setTime(_params.fromtime);
-  _sliderPaintRadius->setValue(_params.radius);
+  _sliderLinePointCount->setValue(_params.line_point_count);
+
   _cbPaintBkgndColor->setCurrentIndex(_cbPaintBkgndColor->findData(_params.painter_bkgnd_color, Qt::DecorationRole));
   _cbPaintDataColor->setCurrentIndex(_cbPaintDataColor->findData(_params.painter_data_color, Qt::DecorationRole));
    
   _gbParams->setVisible(!_params.no_controls);
+  
+//  connect(_sliderLinePointCount, SIGNAL(valueChanged(int)), this, SLOT(setLinePointCount(int)));
+  
+  QMetaObject::connectSlotsByName(this);
   
 }
 
@@ -56,7 +58,7 @@ void SvRlsWidget::_setupUI()
   _hlayMain = new QHBoxLayout();
   _hlayMain->setObjectName(QStringLiteral("_hlayMain"));
   
-  _rls_painter = new SvRlsPainter(&_img, _draw_points_per_line);
+  _rls_painter = new SvRlsPainter(_buffer, &_params);
   _rls_painter->setParent(this);
   _rls_painter->setObjectName(QStringLiteral("_rls_painter"));
   QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -209,34 +211,33 @@ void SvRlsWidget::_setupUI()
   _gbPaintParams->setObjectName(QStringLiteral("_gbPaintParams"));
   _vlayPaintParams = new QVBoxLayout(_gbPaintParams);
   _vlayPaintParams->setObjectName(QStringLiteral("_vlayPaintParams"));
-  _hlayPaintRadius = new QHBoxLayout();
-  _hlayPaintRadius->setObjectName(QStringLiteral("_hlayPaintRadius"));
-  _labelPaintRadius = new QLabel(_gbPaintParams);
-  _labelPaintRadius->setObjectName(QStringLiteral("_labelPaintRadius"));
-  sizePolicy2.setHeightForWidth(_labelPaintRadius->sizePolicy().hasHeightForWidth());
-  _labelPaintRadius->setSizePolicy(sizePolicy2);
-  _labelPaintRadius->setMinimumSize(QSize(65, 0));
-  _labelPaintRadius->setMaximumSize(QSize(65, 16777215));
-  _labelPaintRadius->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+  _hlayLinePointCount = new QHBoxLayout();
+  _hlayLinePointCount->setObjectName(QStringLiteral("_hlayLinePointCount"));
+  _labelLinePointCount = new QLabel(_gbPaintParams);
+  _labelLinePointCount->setObjectName(QStringLiteral("_labelLinePointCount"));
+  sizePolicy2.setHeightForWidth(_labelLinePointCount->sizePolicy().hasHeightForWidth());
+  _labelLinePointCount->setSizePolicy(sizePolicy2);
+  _labelLinePointCount->setMinimumSize(QSize(65, 0));
+  _labelLinePointCount->setMaximumSize(QSize(65, 16777215));
+  _labelLinePointCount->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
 
-  _hlayPaintRadius->addWidget(_labelPaintRadius);
+  _hlayLinePointCount->addWidget(_labelLinePointCount);
 
-  _sliderPaintRadius = new QSlider(_gbPaintParams);
-  _sliderPaintRadius->setObjectName(QStringLiteral("_sliderPaintRadius"));
-  _sliderPaintRadius->setMinimum(300);
-  _sliderPaintRadius->setMaximum(1200);
-  _sliderPaintRadius->setSingleStep(100);
-  _sliderPaintRadius->setPageStep(100);
-  _sliderPaintRadius->setValue(600);
-  _sliderPaintRadius->setOrientation(Qt::Horizontal);
-  _sliderPaintRadius->setTickPosition(QSlider::TicksBelow);
-  _sliderPaintRadius->setTickInterval(100);
-  connect(_sliderPaintRadius, SIGNAL(valueChanged(int)), _rls_painter, SLOT(setResolution(int)));
-  
-  _hlayPaintRadius->addWidget(_sliderPaintRadius);
+  _sliderLinePointCount = new QSlider(_gbPaintParams);
+  _sliderLinePointCount->setObjectName(QStringLiteral("_sliderLinePointCount"));
+  _sliderLinePointCount->setMinimum(300);
+  _sliderLinePointCount->setMaximum(1200);
+  _sliderLinePointCount->setSingleStep(100);
+  _sliderLinePointCount->setPageStep(100);
+  _sliderLinePointCount->setValue(600);
+  _sliderLinePointCount->setOrientation(Qt::Horizontal);
+  _sliderLinePointCount->setTickPosition(QSlider::TicksBelow);
+  _sliderLinePointCount->setTickInterval(100);
+    
+  _hlayLinePointCount->addWidget(_sliderLinePointCount);
 
 
-  _vlayPaintParams->addLayout(_hlayPaintRadius);
+  _vlayPaintParams->addLayout(_hlayLinePointCount);
 
   _hlayPaintBkgndColor = new QHBoxLayout();
   _hlayPaintBkgndColor->setObjectName(QStringLiteral("_hlayPaintBkgndColor"));
@@ -301,8 +302,6 @@ void SvRlsWidget::_setupUI()
 
   vlayMain->addLayout(_hlayMain);
 
-  QMetaObject::connectSlotsByName(this);
-
 
   // retranslateUi
   _bnStartStop->setText(QApplication::translate("Form", "\320\241\321\202\320\260\321\200\321\202", Q_NULLPTR));
@@ -325,43 +324,11 @@ void SvRlsWidget::_setupUI()
   _labelArchDateBegin->setText(QApplication::translate("Form", "\320\224\320\260\321\202\320\260", Q_NULLPTR));
   _labelArchTimeBegin->setText(QApplication::translate("Form", "\320\222\321\200\320\265\320\274\321\217", Q_NULLPTR));
   _gbPaintParams->setTitle(QApplication::translate("Form", "\320\236\321\202\320\276\320\261\321\200\320\260\320\266\320\265\320\275\320\270\320\265", Q_NULLPTR));
-  _labelPaintRadius->setText(QApplication::translate("Form", "\320\240\320\260\320\264\320\270\321\203\321\201", Q_NULLPTR));
+  _labelLinePointCount->setText(QApplication::translate("Form", "\320\224\320\273\320\270\320\275\320\260 \320\273\321\203\321\207\320\260", Q_NULLPTR));
   _labelPaintBkgndColor->setText(QApplication::translate("Form", "\320\246\320\262\320\265\321\202 \321\204\320\276\320\275\320\260", Q_NULLPTR));
   _labelPaintDataColor->setText(QApplication::translate("Form", "\320\246\320\262\320\265\321\202 \320\237\320\240\320\233\320\230", Q_NULLPTR));
  // retranslateUi
 
-  
-}
-
-void SvRlsWidget::drawLine(int lineNum)
-{
-  void* d;
-  d = _buffer + lineNum * MAX_LINE_SIZE;
-  
-  // угол 
-  double a = double(0.5 * M_PI) + _angle * double(lineNum);
-  
-  // угол для индикатора
-  double ind1 = double(0.5 * M_PI) + _angle * double(lineNum + 1);
-  
-  for(int i = 0; i < _draw_points_per_line; i++)
-  {
-    int x = _img_resolution / 2 - double(i * _img_resolution) / _draw_points_per_line / 2 * cos(a);
-    int y = _img_resolution / 2 - double(i * _img_resolution) / _draw_points_per_line / 2 * sin(a);
-    
-    quint8* v = (quint8*)(d + i);
-    if(*v < 0x55) _img.setPixel(x, y, _params.painter_bkgnd_color.rgb()); // qRgb(0, 0, 0)); // qRgb(3, 98, 155));
-    else if(*v < 0xAA) _img.setPixel(x, y, qRgba(_params.painter_data_color.red(), _params.painter_data_color.green(), _params.painter_data_color.blue(), 155)); // qRgb(255, 255, 50));
-    else if(*v < 0xFF) _img.setPixel(x, y, qRgba(_params.painter_data_color.red(), _params.painter_data_color.green(), _params.painter_data_color.blue(), 255)); //qRgb(255, 255, 150));
-//    else _img.setPixel(x, y, qRgb(255, 255, 0));
-    
-    // индикатор
-    x = _img_resolution / 2 - double(i * _img_resolution) / _draw_points_per_line / 2 * cos(ind1);
-    y = _img_resolution / 2 - double(i * _img_resolution) / _draw_points_per_line / 2 * sin(ind1);
-    
-//    _img.setPixel(x, y, qRgb(255, 100, 30));
-       
-  }
   
 }
 
@@ -387,18 +354,66 @@ void SvRlsWidget::stopped()
 
 /** *************************************** **/
 
-SvRlsPainter::SvRlsPainter(QImage *img,
-                           int draw_points_per_line)
+SvRlsPainter::SvRlsPainter(void *buffer, const SvRlsWidgetParams *params)
 {
-  _img = img;
-  _img_resolution = _img->width();
-  _draw_points_per_line = draw_points_per_line;
+  _params = params;
+  _buffer = buffer;
+  
+  _data_angle_step = double(2 * M_PI) / double(AZIMUTHS_COUNT);
+  _indicator_angle_step = 360.0 / AZIMUTHS_COUNT; // 16 * 360
+  
+  _img = QImage(_params->display_point_count, _params->display_point_count, QImage::Format_RGB888);
+  _img.fill(_params->painter_bkgnd_color);
+  
+  
+  _radius = qreal(_params->display_point_count)/2;
+  _indicator_center = QPointF(_radius, _radius);
 
+  _indicator.setCenter(_indicator_center);
+  _indicator.setColorAt(0.95, QColor(0, 0, 0, 0));
+  _indicator.setColorAt(1, _params->painter_data_color);
+  
   _timer.setInterval(20);
   _timer.setSingleShot(false);
   connect(&_timer, SIGNAL(timeout()), this, SLOT(repaint()));
   _timer.start();
 
+}
+
+void SvRlsPainter::drawLine(int lineNum, quint16 discret)
+{
+  if(!_buffer) return;
+  
+  void* d;
+  d = _buffer + lineNum * MAX_LINE_POINT_COUNT;
+  
+  // угол 
+  qreal a = double(0.5 * M_PI) + _data_angle_step * double(lineNum);
+  
+  for(int i = 0; i < _params->line_point_count; i++)
+  {
+    int x = _params->display_point_count / 2 - double(i * _params->display_point_count) / _params->line_point_count / 2 * cos(a);
+    int y = _params->display_point_count / 2 - double(i * _params->display_point_count) / _params->line_point_count / 2 * sin(a);
+    
+    quint8* v = (quint8*)(d + i);
+ 
+    if(*v == 0) _img.setPixel(x, y, _params->painter_bkgnd_color.rgb());
+    else {
+      QColor color = _params->painter_data_color;
+      color.setAlpha(*v);
+      _img.setPixel(x, y, color.rgba());
+    }
+  }
+  
+  /** индикатор **/
+  a = _indicator_angle_step * lineNum - 90;
+  
+  _indicator.setAngle(-a);
+  
+  /** Цена одного дискрета дальности в миллиметрах **/
+  _current_discret = discret;
+  
+  
 }
 
 
@@ -407,17 +422,69 @@ void SvRlsPainter::paintEvent(QPaintEvent *event)
 //  if(!_rls_thread->isPlaying()) return;
 
   QPainter painter(this);
-  painter.drawImage(0, 0, *_img);
+  painter.drawImage(0, 0, _img);
   
-  QPen pen(QColor::fromRgb(qRgb(255, 255, 150)));
-  pen.setWidth(2);
+  QPen pen(QColor::fromRgba(qRgba(255, 255, 150, 50)));
+  pen.setStyle(Qt::DashLine);
   painter.setPen(pen);
   
-  painter.drawEllipse(0, 0, _img_resolution + 1, _img_resolution + 1);
+  /* отображаемая дистанция */
+  qint64 dist = _params->line_point_count * _current_discret / 1000;
   
-  pen.setWidth(1);
+//  qreal i = step;
+
+  /* окружности */
+//  qreal lc = qreal(_params->grid_line_count) / 2;
+  qreal step =  _radius / _params->grid_line_count;
+  for(qreal i = 1; i <= _params->grid_line_count; i++) {
+    qreal p = i * step;
+    painter.drawEllipse(_radius - p, _radius - p, 2*p, 2*p);
+  }
+  
+  /* диагонали */
+  step =  2 * M_PI / _params->grid_line_count;
+  for(int i = 0; i < _params->grid_line_count/2; i++) {
+
+    qreal x = _radius * (1 - cos(i * step));
+    qreal y = _radius * (1 - sin(i * step));
+    
+    qreal x1 = _radius * (1 + cos(i * step));
+    qreal y1 = _radius * (1 + sin(i * step));
+    
+    painter.drawLine(_indicator_center, QPointF(x, y));
+    painter.drawLine(_indicator_center, QPointF(x1, y1));
+    
+//    if(x)
+//      painter.drawLine(QPointF(x, y), QPointF(x1, y));
+    
+//    if(y)
+//      painter.drawLine(QPointF(x, y), QPointF(x, y1));
+    
+  }
+  
+  /* сетка */
+//  step =  _params->display_point_count / _params->grid_line_count;
+//  for(int i = 0; i < _params->grid_line_count; i++) {
+//    qreal p = (i + 1) * step;
+//    painter.drawLine(QPointF(_indicator_center.x() - p, 0), QPointF(_indicator_center.x() - p, _params->display_point_count));
+//    painter.drawLine(QPointF(0, _indicator_center.y() - p), QPointF(_params->display_point_count, _indicator_center.y() - p));
+    
+//      painter.drawLine(QPointF(_indicator_center.x() + p, 0), QPointF(_indicator_center.x() + p, _params->display_point_count));
+//      painter.drawLine(QPointF(0, _indicator_center.y() + p), QPointF(_params->display_point_count, _indicator_center.y() + p));
+//  }
+
+
+  painter.fillRect(0, 0, _params->display_point_count, _params->display_point_count, _indicator);
+  
+  pen.setColor(QColor::fromRgba(qRgba(255, 255, 150, 255)));
+  pen.setStyle(Qt::SolidLine);
   painter.setPen(pen);
-  painter.drawEllipse(_img_resolution/2 - 50, _img_resolution/2 - 50, 100, 100);
   
-//  painter.drawEllipse(200, 200, 100, 100);
+  painter.drawText(10,20, QString("Радиус: %1 метров").arg(dist));
+  
+  painter.drawText(10, 40, QString("Шаг сетки: %1 метров").arg(dist / _params->grid_line_count));
+  painter.drawLine(10, 50, 10, 55);
+  painter.drawLine(10, 55, _radius / _params->grid_line_count, 55);
+  painter.drawLine(_radius / _params->grid_line_count, 55, _radius / _params->grid_line_count, 50);
+  
 }

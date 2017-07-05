@@ -36,7 +36,7 @@ struct Header2bit {
 
 #define Line2bitHeaderSize 18
 
-#define MAX_LINE_SIZE 1460
+#define MAX_LINE_POINT_COUNT 1460
 
 #pragma pack(push,1)
 struct Line2bit
@@ -83,7 +83,7 @@ class SvRls2bitThread : public QThread
     void run() Q_DECL_OVERRIDE;
     
   signals:
-    void lineUpdated(int lineNum);
+    void lineUpdated(int lineNum, quint16 discret);
     
   public slots:
     void stop();

@@ -15,12 +15,12 @@ int main(int argc, char *argv[])
   parser.addVersionOption();
   
   QList<QCommandLineOption> clo;
-  parser.addPositionalArgument("source", QCoreApplication::translate("main", "Источник данных для вывода на экран: udp, archive."));
+  parser.addPositionalArgument("source", QCoreApplication::translate("main", "Источник данных для вывода на дисплей: udp, archive."));
   parser.addPositionalArgument("port", QCoreApplication::translate("main", "Порт для приема данных по протоколу UDP."));
   
   
   clo << QCommandLineOption (QStringList() << "s" << "source",
-                        QCoreApplication::translate("main", "Источник данных для вывода на экран: udp, archive."),
+                        QCoreApplication::translate("main", "Источник данных для вывода на дисплей: udp, archive."),
                         QCoreApplication::translate("main", "udp"));
 
   clo << QCommandLineOption (QStringList() << "p" << "port",
@@ -39,28 +39,28 @@ int main(int argc, char *argv[])
                              QCoreApplication::translate("main", "Время начала просмотра архивных данных в формате 'HHMMSS'."),
                              QCoreApplication::translate("main", "current"));
 
-  clo << QCommandLineOption (QStringList() << "r" << "radius",
-                             QCoreApplication::translate("main", "Количество отображаемых точек."),
-                             QCoreApplication::translate("main", "600"));
+//  clo << QCommandLineOption (QStringList() << "r" << "radius",
+//                             QCoreApplication::translate("main", "Количество отображаемых точек."),
+//                             QCoreApplication::translate("main", "600"));
 
   clo << QCommandLineOption (QStringList() << "bc" << "bcolor",
-                             QCoreApplication::translate("main", "Цвет фона монитора."),
+                             QCoreApplication::translate("main", "Цвет фона дисплея."),
                              QCoreApplication::translate("main", "0"));
 
   clo << QCommandLineOption (QStringList() << "dc" << "dcolor",
-                             QCoreApplication::translate("main", "Цвет данных на мониторе."),
+                             QCoreApplication::translate("main", "Цвет данных на дисплее."),
                              QCoreApplication::translate("main", "#FFFF96"));  
   
   clo << QCommandLineOption ("autostart",
                              QCoreApplication::translate("main", "Автоматический запуск отображения при запуске."));  
   
-  clo << QCommandLineOption (QStringList() << "ir" << "imgresolution",
-                             QCoreApplication::translate("main", "То же, что radius"),
-                             QCoreApplication::translate("main", "600"));  
+  clo << QCommandLineOption (QStringList() << "displaypc" << "display_point_count",
+                             QCoreApplication::translate("main", "Размер дисплея в точках."),
+                             QCoreApplication::translate("main", "640"));  
   
-  clo << QCommandLineOption (QStringList() << "ppl" << "pointperline",
-                             QCoreApplication::translate("main", "То же, что radius"),
-                             QCoreApplication::translate("main", "600"));  
+  clo << QCommandLineOption (QStringList() << "linepc" << "line_point_count",
+                             QCoreApplication::translate("main", "Количество точек линейки данных РЛС, выводимых на дисплей. Каждая динейка данных соответствует одному лучу. РЛС может передавать максимум 1460 точек на один луч."),
+                             QCoreApplication::translate("main", "1200"));  
   
   clo << QCommandLineOption ("nocontrols",
                              QCoreApplication::translate("main", "Не отображать элементы управления."));  

@@ -15,14 +15,14 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   
   
   
-  int w = AppParams::readParam(this, "RLS", "Width", 640).toInt();
-  int h = AppParams::readParam(this, "RLS", "Height", 640).toInt();
-  int r = AppParams::readParam(this, "RLS", "Resolution", 360).toInt();
+//  int w = AppParams::readParam(this, "RLS", "Width", 640).toInt();
+//  int h = AppParams::readParam(this, "RLS", "Height", 640).toInt();
+//  int r = AppParams::readParam(this, "RLS", "Resolution", 360).toInt();
 //  AppParams::readParam(this, "RLS", "Draw radius", MAX_LINE_SIZE).toInt();
 
   
-  _buffer = malloc(AZIMUTHS_COUNT * MAX_LINE_SIZE);
-  memset(_buffer, char(0), AZIMUTHS_COUNT * MAX_LINE_SIZE);
+  _buffer = malloc(AZIMUTHS_COUNT * MAX_LINE_POINT_COUNT);
+  memset(_buffer, char(0), AZIMUTHS_COUNT * MAX_LINE_POINT_COUNT);
   
   /**  разбираем параметры  **/
   SvRlsWidgetParams p;
@@ -43,22 +43,21 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
                                         : AppParams::readParam(this, "PARAMS", "fromtime", QVariant(QTime::currentTime())).toTime();
   
   p.painter_bkgnd_color = parser.isSet("bcolor") ? QColor::fromRgb(parser.value("bcolor").toInt(nullptr, 16))
-                                                 : AppParams::readParam(this, "PARAMS", "painter_bkgnd_color", QVariant("000000")).toString().toInt(nullptr, 16);
+                                                 : QColor(AppParams::readParam(this, "PARAMS", "painter_bkgnd_color", "#000000").toString()) ; //.toInt(nullptr, 16));
   
   p.painter_data_color = parser.isSet("dcolor") ? QColor::fromRgb(parser.value("dcolor").toInt(nullptr, 16))
-                                                : AppParams::readParam(this, "PARAMS", "painter_data_color", QVariant("FFFF00")).toString().toInt(nullptr, 16);
+                                                : QColor(AppParams::readParam(this, "PARAMS", "painter_data_color", "#FFFF00").toString());
   
-  p.radius = parser.isSet("radius") ? parser.value("radius").toUInt() : AppParams::readParam(this, "PARAMS", "radius", QVariant(600)).toUInt();
-  p.img_resolution = parser.isSet("imgresolution") ? parser.value("imgresolution").toUInt() : AppParams::readParam(this, "PARAMS", "img_resolution", QVariant(600)).toUInt();
-  p.radius = parser.isSet("pointperline") ? parser.value("pointperline").toUInt() : AppParams::readParam(this, "PARAMS", "draw_points_per_line", QVariant(600)).toUInt();
+//  p.radius = parser.isSet("radius") ? parser.value("radius").toUInt() : AppParams::readParam(this, "PARAMS", "radius", QVariant(600)).toUInt();
+  p.display_point_count = parser.isSet("displaypc") ? parser.value("displaypc").toUInt() : AppParams::readParam(this, "PARAMS", "display_point_count", QVariant(640)).toUInt();
+  p.line_point_count = parser.isSet("linepc") ? parser.value("linepc").toUInt() : AppParams::readParam(this, "PARAMS", "line_point_count", QVariant(1200)).toUInt();
   
   p.autostart = parser.isSet("autostart") ? true : AppParams::readParam(this, "PARAMS", "autostart", true).toBool();
   p.no_controls = parser.isSet("nocontrols") ? true : AppParams::readParam(this, "PARAMS", "nocontrols", false).toBool();
-  qDebug() << p.no_controls;
 
   _rls_widget = new SvRlsWidget(_buffer, p);
   _rls_widget->setParent(this);
-  _rls_widget->resize(w, h);
+  
   ui->vlayMain->addWidget(_rls_widget);
   
   connect(this, SIGNAL(thread_started()), _rls_widget, SLOT(started()));
@@ -83,6 +82,18 @@ MainWindow::~MainWindow()
   /* сохраняем парметры программы */
   AppParams::saveWindowParams(this, this->size(), this->pos(), this->windowState());
   
+  SvRlsWidgetParams p = _rls_widget->params();
+  AppParams::saveParam(this, "PARAMS", "source", p.source);
+  AppParams::saveParam(this, "PARAMS", "ip", p.ip);
+  AppParams::saveParam(this, "PARAMS", "port", p.port);
+  AppParams::saveParam(this, "PARAMS", "fromdate", p.fromdate);
+  AppParams::saveParam(this, "PARAMS", "fromtime", p.fromtime);
+  AppParams::saveParam(this, "PARAMS", "painter_bkgnd_color", p.painter_bkgnd_color.name());
+  AppParams::saveParam(this, "PARAMS", "painter_data_color",  p.painter_data_color.name());
+  AppParams::saveParam(this, "PARAMS", "display_point_count", p.display_point_count);
+  AppParams::saveParam(this, "PARAMS", "line_point_count", p.line_point_count);
+  AppParams::saveParam(this, "PARAMS", "autostart", p.autostart);
+  
   delete ui;
 }
 
@@ -103,7 +114,7 @@ void MainWindow::_start_stop_thread(quint32 ip, quint16 port)
     
     _rls_thread = new SvRls2bitThread(_buffer, ip, port, this);
   //  connect(_rls_thread, QThread::finished, _rls_thread, &QObject::deleteLater);
-    connect(_rls_thread, SIGNAL(lineUpdated(int)), _rls_widget, SLOT(drawLine(int)));
+    connect(_rls_thread, SIGNAL(lineUpdated(int, quint16)), _rls_widget->painter(), SLOT(drawLine(int, quint16)));
     
     _rls_thread->start();
     

@@ -83,7 +83,7 @@ void SvRls2bitThread::run()
           
           int i = 0;
           int cnt = 0;
-          void* data = buffer + line_head->lineNum * MAX_LINE_SIZE;
+          void* data = buffer + line_head->lineNum * MAX_LINE_POINT_COUNT;
           while(i < line_data_size)
           {
             quint8* ch = (quint8*)(line_data + i);
@@ -130,7 +130,7 @@ void SvRls2bitThread::run()
             }
           }
             
-           emit lineUpdated(line_head->lineNum);
+           emit lineUpdated(line_head->lineNum, line_head->discret);
           
         }
       }
