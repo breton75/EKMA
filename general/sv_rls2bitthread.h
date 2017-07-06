@@ -5,7 +5,13 @@
 #include <QThread>
 #include <QUdpSocket>
 #include <QObject>
-#include <QApplication>
+#include <QTime>
+#include <QFile>
+#include <QDir>
+#include "time.h"
+#include <QDataStream>
+
+
 
 #pragma pack(push,1)
 struct StandartRLS {
@@ -48,6 +54,23 @@ struct Line2bit
 };
 #pragma pack(pop)
 
+struct SvRlsArchiverParams {
+  QString ip = "127.0.0.1";
+  quint16 port = 8000;
+  
+  int rotation_speed;
+  
+  QString path = "archive";
+  QString device_name = "rls";
+  QTime file_duration = QTime(1, 0, 0); // один час
+  QTime total_duration = QTime(0, 0, 0);
+  QString date_time_format = "ddMMyy_hhmmss";
+  QString file_name_format = "{DEVICE}_{DATETIME}";
+
+  QString out_ip = "127.0.0.1";
+  quint16 out_port = 8100;
+};
+
 
 class SvRls2bitThread : public QThread
 {
@@ -58,11 +81,9 @@ class SvRls2bitThread : public QThread
                                 quint16 port,
                                 QObject *parent = 0);
     
-    ~SvRls2bitThread();
+    ~SvRls2bitThread() { deleteLater(); }
     
     void* buffer;
-    int* firstLineNum;
-    int* lastLineNum;
     
     bool isPlaying() { return _playing; }
 //    bool isFinished() { return _finished; }
@@ -72,10 +93,7 @@ class SvRls2bitThread : public QThread
     
     quint32 _ip;
     quint16 _port;
-//    QByteArray *datagram;
-    int _linesCount;
-    int _pointPerLine;
-    int _bitPerPoint;
+
     bool _playing = false;
     bool _finished = false;
     
@@ -86,10 +104,58 @@ class SvRls2bitThread : public QThread
     void lineUpdated(int lineNum, quint16 discret);
     
   public slots:
-    void stop();
+    void stop() { _playing = false; }
+
     
-//  private slots:
-//    void readPendingDatagrams();
+};
+
+
+
+class SvRlsArchiver : public QThread
+{
+    Q_OBJECT
+  public:
+    explicit SvRlsArchiver(SvRlsArchiverParams &params, QObject *parent);
+    
+    ~SvRlsArchiver() { deleteLater(); }
+    
+    QDateTime cur_file_date_time;
+    QString path;
+    QString file_name;
+    
+    bool isPlaying() { return _playing; }
+
+  private:
+    
+    QUdpSocket* _socket;
+    QUdpSocket* _socket_out;
+    
+    SvRlsArchiverParams _params;
+    
+    bool _playing = false;
+        
+    QFile* _file = nullptr;
+    QDataStream* _out = nullptr;
+    
+    qint32 _file_duration_sec;
+    qint32 _total_duration_sec;
+    
+    bool _new_file;
+    bool _new_header;
+    
+    QString _ext = "bt2";
+    
+  protected:
+    void run() Q_DECL_OVERRIDE;
+    
+  signals:
+    void NewFile();
+    void NewHeader();
+    void TotalTimeElapsed();
+    void FileTimeElapsed();
+    
+  public slots:
+    void stop() { _playing = false; }
 
     
 };

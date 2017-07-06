@@ -1,6 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    RLS
+    RLS \
+    RLS_archiver
 
 

@@ -25,13 +25,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    sv_rls2bitthread.cpp \
     ../../Common/sv_settings.cpp \
-    sv_rlswidget.cpp
+    sv_rlswidget.cpp \
+    ../general/sv_rls2bitthread.cpp
 
 HEADERS  += mainwindow.h \
-    sv_rls2bitthread.h \
     ../../Common/sv_settings.h \
-    sv_rlswidget.h
+    sv_rlswidget.h \
+    ../general/sv_rls2bitthread.h
 
 FORMS    += mainwindow.ui
+
+INCLUDEPATH += ../general
