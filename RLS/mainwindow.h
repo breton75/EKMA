@@ -26,16 +26,20 @@ private:
   
   SvRlsWidget *_rls_widget;
   
-  SvRls2bitThread *_rls_thread = nullptr;
+  SvRls2bitThread *_rls_udp_thread = nullptr;
+  SvRlsExtractThread *_rls_archive_thread = nullptr;
   
   void *_buffer;
   
 signals:
-  void thread_started();
-  void thread_stopped();
+  void thread_udp_started();
+  void thread_udp_stopped();
+  void thread_archive_started();
+  void thread_archive_stopped();  
   
 private slots:
-  void _start_stop_thread(quint32 ip, quint16 port);
+  void _start_stop_udp_thread(quint32 ip, quint16 port);
+  void _start_stop_archive_thread(QStringList *files);
   
 };
 

@@ -13,6 +13,8 @@ SvRlsWidget::SvRlsWidget(void *buffer, SvRlsWidgetParams &params)
   
   _setupUI();  
   
+  _cbDataSource->addItem("UDP", QVariant(svrlswdg::udp));
+  _cbDataSource->addItem("\320\220\321\200\321\205\320\270\320\262", QVariant(svrlswdg::archive));
 
   QStringList colorNames = QColor::colorNames();
 
@@ -29,18 +31,22 @@ SvRlsWidget::SvRlsWidget(void *buffer, SvRlsWidgetParams &params)
   _cbDataSource->setCurrentIndex(_params.source);
   _editIp->setText(QHostAddress(_params.ip).toString());
   _spinPort->setValue(_params.port);
-  _dateArchBegin->setDate(_params.fromdate);
-  _timeArchBegin->setTime(_params.fromtime);
+//  _dateArchBegin->setDate(_params.fromdate);
+//  _timeArchBegin->setTime(_params.fromtime);
   _sliderLinePointCount->setValue(_params.line_point_count);
 
   _cbPaintBkgndColor->setCurrentIndex(_cbPaintBkgndColor->findData(_params.painter_bkgnd_color, Qt::DecorationRole));
   _cbPaintDataColor->setCurrentIndex(_cbPaintDataColor->findData(_params.painter_data_color, Qt::DecorationRole));
    
-  _gbParams->setVisible(!_params.no_controls);
   
 //  connect(_sliderLinePointCount, SIGNAL(valueChanged(int)), this, SLOT(setLinePointCount(int)));
   
   QMetaObject::connectSlotsByName(this);
+  
+  
+  on__cbDataSource_currentIndexChanged(_params.source);
+  
+  _gbParams->setVisible(!_params.no_controls);
   
 }
 
@@ -53,9 +59,7 @@ void SvRlsWidget::_setupUI()
 {
   this->setObjectName(tr("SvRlsWidget"));
 
-  vlayMain = new QVBoxLayout(this);
-  vlayMain->setObjectName(QStringLiteral("vlayMain"));
-  _hlayMain = new QHBoxLayout();
+  _hlayMain = new QHBoxLayout(this);
   _hlayMain->setObjectName(QStringLiteral("_hlayMain"));
   
   _rls_painter = new SvRlsPainter(_buffer, &_params);
@@ -68,251 +72,236 @@ void SvRlsWidget::_setupUI()
   _rls_painter->setSizePolicy(sizePolicy);
 
   _hlayMain->addWidget(_rls_painter);
-
-  _vlayControls = new QVBoxLayout();
-  _vlayControls->setObjectName(QStringLiteral("_vlayControls"));
-//  _bnStartStop = new QPushButton(this);
-//  _bnStartStop->setObjectName(QStringLiteral("_bnStartStop"));
-//  QSizePolicy sizePolicy1(QSizePolicy::Preferred, QSizePolicy::Fixed);
-//  sizePolicy1.setHorizontalStretch(0);
-//  sizePolicy1.setVerticalStretch(0);
-//  sizePolicy1.setHeightForWidth(_bnStartStop->sizePolicy().hasHeightForWidth());
-//  _bnStartStop->setSizePolicy(sizePolicy1);
-
-//  _vlayControls->addWidget(_bnStartStop);
-
-  _gbParams = new QGroupBox(this);
-  _gbParams->setObjectName(QStringLiteral("_gbParams"));
-  QSizePolicy sizePolicy2(QSizePolicy::Fixed, QSizePolicy::Preferred);
-  sizePolicy2.setHorizontalStretch(0);
-  sizePolicy2.setVerticalStretch(0);
-  sizePolicy2.setHeightForWidth(_gbParams->sizePolicy().hasHeightForWidth());
-  _gbParams->setSizePolicy(sizePolicy2);
-  vlayParams = new QVBoxLayout(_gbParams);
-  vlayParams->setObjectName(QStringLiteral("vlayParams"));
-  _hlayDataSource = new QHBoxLayout();
-  _hlayDataSource->setObjectName(QStringLiteral("_hlayDataSource"));
-  _labelDataSource = new QLabel(_gbParams);
-  _labelDataSource->setObjectName(QStringLiteral("_labelDataSource"));
-  sizePolicy2.setHeightForWidth(_labelDataSource->sizePolicy().hasHeightForWidth());
-  _labelDataSource->setSizePolicy(sizePolicy2);
-  _labelDataSource->setMinimumSize(QSize(65, 0));
-  _labelDataSource->setMaximumSize(QSize(65, 16777215));
-  _labelDataSource->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-
-  _hlayDataSource->addWidget(_labelDataSource);
-
-  _cbDataSource = new QComboBox(_gbParams);
-  _cbDataSource->setObjectName(QStringLiteral("_cbDataSource"));
-
-  _hlayDataSource->addWidget(_cbDataSource);
-
-
-  vlayParams->addLayout(_hlayDataSource);
-
-  _gbNetworkParams = new QGroupBox(_gbParams);
-  _gbNetworkParams->setObjectName(QStringLiteral("_gbNetworkParams"));
-  _vlayNetworkParams = new QVBoxLayout(_gbNetworkParams);
-  _vlayNetworkParams->setObjectName(QStringLiteral("_vlayNetworkParams"));
-  _hlayIp = new QHBoxLayout();
-  _hlayIp->setObjectName(QStringLiteral("_hlayIp"));
-  _labelIp = new QLabel(_gbNetworkParams);
-  _labelIp->setObjectName(QStringLiteral("_labelIp"));
-  sizePolicy2.setHeightForWidth(_labelIp->sizePolicy().hasHeightForWidth());
-  _labelIp->setSizePolicy(sizePolicy2);
-  _labelIp->setMinimumSize(QSize(65, 0));
-  _labelIp->setMaximumSize(QSize(65, 16777215));
-  _labelIp->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-
-  _hlayIp->addWidget(_labelIp);
-
-  _editIp = new QLineEdit(_gbNetworkParams);
-  _editIp->setObjectName(QStringLiteral("_editIp"));
-
-  _hlayIp->addWidget(_editIp);
-
-
-  _vlayNetworkParams->addLayout(_hlayIp);
-
-  _hlayPort = new QHBoxLayout();
-  _hlayPort->setObjectName(QStringLiteral("_hlayPort"));
-  _labelPort = new QLabel(_gbNetworkParams);
-  _labelPort->setObjectName(QStringLiteral("_labelPort"));
-  sizePolicy2.setHeightForWidth(_labelPort->sizePolicy().hasHeightForWidth());
-  _labelPort->setSizePolicy(sizePolicy2);
-  _labelPort->setMinimumSize(QSize(65, 0));
-  _labelPort->setMaximumSize(QSize(65, 16777215));
-  _labelPort->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-
-  _hlayPort->addWidget(_labelPort);
-
-  _spinPort = new QSpinBox(_gbNetworkParams);
-  _spinPort->setObjectName(QStringLiteral("_spinPort"));
-  _spinPort->setMinimum(1);
-  _spinPort->setMaximum(32565);
-  _spinPort->setValue(8000);
-
-  _hlayPort->addWidget(_spinPort);
-
-
-  _vlayNetworkParams->addLayout(_hlayPort);
-
-
-  vlayParams->addWidget(_gbNetworkParams);
-
-  _gbArchParams = new QGroupBox(_gbParams);
-  _gbArchParams->setObjectName(QStringLiteral("_gbArchParams"));
-  _vlayArchParams = new QVBoxLayout(_gbArchParams);
-  _vlayArchParams->setObjectName(QStringLiteral("_vlayArchParams"));
-  _hlayArchDateBegin = new QHBoxLayout();
-  _hlayArchDateBegin->setObjectName(QStringLiteral("_hlayArchDateBegin"));
-  _labelArchDateBegin = new QLabel(_gbArchParams);
-  _labelArchDateBegin->setObjectName(QStringLiteral("_labelArchDateBegin"));
-  sizePolicy2.setHeightForWidth(_labelArchDateBegin->sizePolicy().hasHeightForWidth());
-  _labelArchDateBegin->setSizePolicy(sizePolicy2);
-  _labelArchDateBegin->setMinimumSize(QSize(65, 0));
-  _labelArchDateBegin->setMaximumSize(QSize(65, 16777215));
-  _labelArchDateBegin->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-
-  _hlayArchDateBegin->addWidget(_labelArchDateBegin);
-
-  _dateArchBegin = new QDateEdit(_gbArchParams);
-  _dateArchBegin->setObjectName(QStringLiteral("_dateArchBegin"));
-
-  _hlayArchDateBegin->addWidget(_dateArchBegin);
-
-
-  _vlayArchParams->addLayout(_hlayArchDateBegin);
-
-  _hlayArchTimeBegin = new QHBoxLayout();
-  _hlayArchTimeBegin->setObjectName(QStringLiteral("_hlayArchTimeBegin"));
-  _labelArchTimeBegin = new QLabel(_gbArchParams);
-  _labelArchTimeBegin->setObjectName(QStringLiteral("_labelArchTimeBegin"));
-  sizePolicy2.setHeightForWidth(_labelArchTimeBegin->sizePolicy().hasHeightForWidth());
-  _labelArchTimeBegin->setSizePolicy(sizePolicy2);
-  _labelArchTimeBegin->setMinimumSize(QSize(65, 0));
-  _labelArchTimeBegin->setMaximumSize(QSize(65, 16777215));
-  _labelArchTimeBegin->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-
-  _hlayArchTimeBegin->addWidget(_labelArchTimeBegin);
-
-  _timeArchBegin = new QTimeEdit(_gbArchParams);
-  _timeArchBegin->setObjectName(QStringLiteral("_timeArchBegin"));
-
-  _hlayArchTimeBegin->addWidget(_timeArchBegin);
-
-
-  _vlayArchParams->addLayout(_hlayArchTimeBegin);
-
-
-  vlayParams->addWidget(_gbArchParams);
-
-  _gbPaintParams = new QGroupBox(_gbParams);
-  _gbPaintParams->setObjectName(QStringLiteral("_gbPaintParams"));
-  _vlayPaintParams = new QVBoxLayout(_gbPaintParams);
-  _vlayPaintParams->setObjectName(QStringLiteral("_vlayPaintParams"));
-  _hlayLinePointCount = new QHBoxLayout();
-  _hlayLinePointCount->setObjectName(QStringLiteral("_hlayLinePointCount"));
-  _labelLinePointCount = new QLabel(_gbPaintParams);
-  _labelLinePointCount->setObjectName(QStringLiteral("_labelLinePointCount"));
-  sizePolicy2.setHeightForWidth(_labelLinePointCount->sizePolicy().hasHeightForWidth());
-  _labelLinePointCount->setSizePolicy(sizePolicy2);
-  _labelLinePointCount->setMinimumSize(QSize(65, 0));
-  _labelLinePointCount->setMaximumSize(QSize(65, 16777215));
-  _labelLinePointCount->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-
-  _hlayLinePointCount->addWidget(_labelLinePointCount);
-
-  _sliderLinePointCount = new QSlider(_gbPaintParams);
-  _sliderLinePointCount->setObjectName(QStringLiteral("_sliderLinePointCount"));
-  _sliderLinePointCount->setMinimum(300);
-  _sliderLinePointCount->setMaximum(1200);
-  _sliderLinePointCount->setSingleStep(100);
-  _sliderLinePointCount->setPageStep(100);
-  _sliderLinePointCount->setValue(600);
-  _sliderLinePointCount->setOrientation(Qt::Horizontal);
-  _sliderLinePointCount->setTickPosition(QSlider::TicksBelow);
-  _sliderLinePointCount->setTickInterval(100);
-    
-  _hlayLinePointCount->addWidget(_sliderLinePointCount);
-
-
-  _vlayPaintParams->addLayout(_hlayLinePointCount);
-
-  _hlayPaintBkgndColor = new QHBoxLayout();
-  _hlayPaintBkgndColor->setObjectName(QStringLiteral("_hlayPaintBkgndColor"));
-  _labelPaintBkgndColor = new QLabel(_gbPaintParams);
-  _labelPaintBkgndColor->setObjectName(QStringLiteral("_labelPaintBkgndColor"));
-  sizePolicy2.setHeightForWidth(_labelPaintBkgndColor->sizePolicy().hasHeightForWidth());
-  _labelPaintBkgndColor->setSizePolicy(sizePolicy2);
-  _labelPaintBkgndColor->setMinimumSize(QSize(65, 0));
-  _labelPaintBkgndColor->setMaximumSize(QSize(65, 16777215));
-  _labelPaintBkgndColor->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-
-  _hlayPaintBkgndColor->addWidget(_labelPaintBkgndColor);
-
-  _cbPaintBkgndColor = new QComboBox(_gbPaintParams);
-  _cbPaintBkgndColor->setObjectName(QStringLiteral("_cbPaintBkgndColor"));
-
-  _hlayPaintBkgndColor->addWidget(_cbPaintBkgndColor);
-
-
-  _vlayPaintParams->addLayout(_hlayPaintBkgndColor);
-
-  _hlayPaintDataColor = new QHBoxLayout();
-  _hlayPaintDataColor->setObjectName(QStringLiteral("_hlayPaintDataColor"));
-  _labelPaintDataColor = new QLabel(_gbPaintParams);
-  _labelPaintDataColor->setObjectName(QStringLiteral("_labelPaintDataColor"));
-  sizePolicy2.setHeightForWidth(_labelPaintDataColor->sizePolicy().hasHeightForWidth());
-  _labelPaintDataColor->setSizePolicy(sizePolicy2);
-  _labelPaintDataColor->setMinimumSize(QSize(65, 0));
-  _labelPaintDataColor->setMaximumSize(QSize(65, 16777215));
-  _labelPaintDataColor->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-
-  _hlayPaintDataColor->addWidget(_labelPaintDataColor);
-
-  _cbPaintDataColor = new QComboBox(_gbPaintParams);
-  _cbPaintDataColor->setObjectName(QStringLiteral("_cbPaintDataColor"));
-
-  _hlayPaintDataColor->addWidget(_cbPaintDataColor);
-
-
-  _vlayPaintParams->addLayout(_hlayPaintDataColor);
-
-
-  vlayParams->addWidget(_gbPaintParams);
   
-  _bnStartStop = new QPushButton(this);
-  _bnStartStop->setObjectName(QStringLiteral("_bnStartStop"));
-  QSizePolicy sizePolicy1(QSizePolicy::Preferred, QSizePolicy::Fixed);
-  sizePolicy1.setHorizontalStretch(0);
-  sizePolicy1.setVerticalStretch(0);
-  sizePolicy1.setHeightForWidth(_bnStartStop->sizePolicy().hasHeightForWidth());
-  _bnStartStop->setSizePolicy(sizePolicy1);
+          _gbParams = new QGroupBox(this);
+          _gbParams->setObjectName(QStringLiteral("_gbParams"));
+          QSizePolicy sizePolicy1(QSizePolicy::Fixed, QSizePolicy::Preferred);
+          sizePolicy1.setHorizontalStretch(0);
+          sizePolicy1.setVerticalStretch(0);
+          sizePolicy1.setHeightForWidth(_gbParams->sizePolicy().hasHeightForWidth());
+          _gbParams->setSizePolicy(sizePolicy1);
+          _vlayParams = new QVBoxLayout(_gbParams); 
+          _vlayParams->setObjectName(QStringLiteral("_vlayParams"));
+          _hlayDataSource = new QHBoxLayout();
+          _hlayDataSource->setObjectName(QStringLiteral("_hlayDataSource"));
+          _labelDataSource = new QLabel(_gbParams);
+          _labelDataSource->setObjectName(QStringLiteral("_labelDataSource"));
+          sizePolicy1.setHeightForWidth(_labelDataSource->sizePolicy().hasHeightForWidth());
+          _labelDataSource->setSizePolicy(sizePolicy1);
+          _labelDataSource->setMinimumSize(QSize(65, 0));
+          _labelDataSource->setMaximumSize(QSize(65, 16777215));
+          _labelDataSource->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
   
-  vlayParams->addWidget(_bnStartStop);
+          _hlayDataSource->addWidget(_labelDataSource);
   
-  _verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-  vlayParams->addItem(_verticalSpacer);
-
-  _vlayControls->addWidget(_gbParams);
-
-  _hlayMain->addLayout(_vlayControls);
-
-  vlayMain->addLayout(_hlayMain);
+          _cbDataSource = new QComboBox(_gbParams);
+          _cbDataSource->setObjectName(QStringLiteral("_cbDataSource"));
+  
+          _hlayDataSource->addWidget(_cbDataSource);
+  
+  
+          _vlayParams->addLayout(_hlayDataSource);
+  
+          _gbNetworkParams = new QGroupBox(_gbParams);
+          _gbNetworkParams->setObjectName(QStringLiteral("_gbNetworkParams"));
+          _vlayNetworkParams = new QVBoxLayout(_gbNetworkParams);
+          _vlayNetworkParams->setObjectName(QStringLiteral("_vlayNetworkParams"));
+          _hlayIp = new QHBoxLayout();
+          _hlayIp->setObjectName(QStringLiteral("_hlayIp"));
+          _labelIp = new QLabel(_gbNetworkParams);
+          _labelIp->setObjectName(QStringLiteral("_labelIp"));
+          sizePolicy1.setHeightForWidth(_labelIp->sizePolicy().hasHeightForWidth());
+          _labelIp->setSizePolicy(sizePolicy1);
+          _labelIp->setMinimumSize(QSize(65, 0));
+          _labelIp->setMaximumSize(QSize(65, 16777215));
+          _labelIp->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+  
+          _hlayIp->addWidget(_labelIp);
+  
+          _editIp = new QLineEdit(_gbNetworkParams);
+          _editIp->setObjectName(QStringLiteral("_editIp"));
+  
+          _hlayIp->addWidget(_editIp);
+  
+  
+          _vlayNetworkParams->addLayout(_hlayIp);
+  
+          _hlayPort = new QHBoxLayout();
+          _hlayPort->setObjectName(QStringLiteral("_hlayPort"));
+          _labelPort = new QLabel(_gbNetworkParams);
+          _labelPort->setObjectName(QStringLiteral("_labelPort"));
+          sizePolicy1.setHeightForWidth(_labelPort->sizePolicy().hasHeightForWidth());
+          _labelPort->setSizePolicy(sizePolicy1);
+          _labelPort->setMinimumSize(QSize(65, 0));
+          _labelPort->setMaximumSize(QSize(65, 16777215));
+          _labelPort->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+  
+          _hlayPort->addWidget(_labelPort);
+  
+          _spinPort = new QSpinBox(_gbNetworkParams);
+          _spinPort->setObjectName(QStringLiteral("_spinPort"));
+          _spinPort->setMinimum(1);
+          _spinPort->setMaximum(32565);
+          _spinPort->setValue(8001);
+  
+          _hlayPort->addWidget(_spinPort);
+  
+  
+          _vlayNetworkParams->addLayout(_hlayPort);
+  
+          _bnStartStopUDP = new QPushButton(_gbNetworkParams);
+          _bnStartStopUDP->setObjectName(QStringLiteral("_bnStartStopUDP"));
+          QSizePolicy sizePolicy2(QSizePolicy::Preferred, QSizePolicy::Fixed);
+          sizePolicy2.setHorizontalStretch(0);
+          sizePolicy2.setVerticalStretch(0);
+          sizePolicy2.setHeightForWidth(_bnStartStopUDP->sizePolicy().hasHeightForWidth());
+          _bnStartStopUDP->setSizePolicy(sizePolicy2);
+  
+          _vlayNetworkParams->addWidget(_bnStartStopUDP);
+  
+  
+          _vlayParams->addWidget(_gbNetworkParams);
+  
+          _gbArchParams = new QGroupBox(_gbParams);
+          _gbArchParams->setObjectName(QStringLiteral("_gbArchParams"));
+          _vlayArchParams = new QVBoxLayout(_gbArchParams);
+          _vlayArchParams->setObjectName(QStringLiteral("_vlayArchParams"));
+          _bnSelectArchiveFiles = new QPushButton(_gbArchParams);
+          _bnSelectArchiveFiles->setObjectName(QStringLiteral("_bnSelectArchiveFiles"));
+  
+          _vlayArchParams->addWidget(_bnSelectArchiveFiles);
+  
+          _hlayCurrentArchiveFile = new QHBoxLayout();
+          _hlayCurrentArchiveFile->setObjectName(QStringLiteral("_hlayCurrentArchiveFile"));
+          _labelCurrentArchiveFile = new QLabel(_gbArchParams);
+          _labelCurrentArchiveFile->setObjectName(QStringLiteral("_labelCurrentArchiveFile"));
+          sizePolicy1.setHeightForWidth(_labelCurrentArchiveFile->sizePolicy().hasHeightForWidth());
+          _labelCurrentArchiveFile->setSizePolicy(sizePolicy1);
+          _labelCurrentArchiveFile->setMinimumSize(QSize(65, 0));
+          _labelCurrentArchiveFile->setMaximumSize(QSize(65, 16777215));
+          _labelCurrentArchiveFile->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+  
+          _hlayCurrentArchiveFile->addWidget(_labelCurrentArchiveFile);
+  
+          _editCurrentArchiveFile = new QLineEdit(_gbArchParams);
+          _editCurrentArchiveFile->setObjectName(QStringLiteral("_editCurrentArchiveFile"));
+          _editCurrentArchiveFile->setStyleSheet(QStringLiteral("background-color: rgb(240, 240, 240);"));
+  
+          _hlayCurrentArchiveFile->addWidget(_editCurrentArchiveFile);
+  
+  
+          _vlayArchParams->addLayout(_hlayCurrentArchiveFile);
+  
+          _cbRepeatArchiveFiles = new QCheckBox(_gbArchParams);
+          _cbRepeatArchiveFiles->setObjectName(QStringLiteral("_cbRepeatArchiveFiles"));
+          _cbRepeatArchiveFiles->setChecked(true);
+  
+          _vlayArchParams->addWidget(_cbRepeatArchiveFiles);
+  
+          _bnStartStopArchive = new QPushButton(_gbArchParams);
+          _bnStartStopArchive->setObjectName(QStringLiteral("_bnStartStopArchive"));
+          sizePolicy2.setHeightForWidth(_bnStartStopArchive->sizePolicy().hasHeightForWidth());
+          _bnStartStopArchive->setSizePolicy(sizePolicy2);
+  
+          _vlayArchParams->addWidget(_bnStartStopArchive);
+  
+  
+          _vlayParams->addWidget(_gbArchParams);
+  
+          _gbPaintParams = new QGroupBox(_gbParams);
+          _gbPaintParams->setObjectName(QStringLiteral("_gbPaintParams"));
+          _vlayPaintParams = new QVBoxLayout(_gbPaintParams);
+          _vlayPaintParams->setObjectName(QStringLiteral("_vlayPaintParams"));
+          _hlayLinePointCount = new QHBoxLayout();
+          _hlayLinePointCount->setObjectName(QStringLiteral("_hlayLinePointCount"));
+          _labelLinePointCount = new QLabel(_gbPaintParams);
+          _labelLinePointCount->setObjectName(QStringLiteral("_labelLinePointCount"));
+          sizePolicy1.setHeightForWidth(_labelLinePointCount->sizePolicy().hasHeightForWidth());
+          _labelLinePointCount->setSizePolicy(sizePolicy1);
+          _labelLinePointCount->setMinimumSize(QSize(65, 0));
+          _labelLinePointCount->setMaximumSize(QSize(65, 16777215));
+          _labelLinePointCount->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+  
+          _hlayLinePointCount->addWidget(_labelLinePointCount);
+  
+          _sliderLinePointCount = new QSlider(_gbPaintParams);
+          _sliderLinePointCount->setObjectName(QStringLiteral("_sliderLinePointCount"));
+          _sliderLinePointCount->setMinimum(300);
+          _sliderLinePointCount->setMaximum(1200);
+          _sliderLinePointCount->setSingleStep(100);
+          _sliderLinePointCount->setPageStep(100);
+          _sliderLinePointCount->setValue(600);
+          _sliderLinePointCount->setOrientation(Qt::Horizontal);
+          _sliderLinePointCount->setTickPosition(QSlider::TicksBelow);
+          _sliderLinePointCount->setTickInterval(100);
+  
+          _hlayLinePointCount->addWidget(_sliderLinePointCount);
+  
+  
+          _vlayPaintParams->addLayout(_hlayLinePointCount);
+  
+          _hlayPaintBkgndColor = new QHBoxLayout();
+          _hlayPaintBkgndColor->setObjectName(QStringLiteral("_hlayPaintBkgndColor"));
+          _labelPaintBkgndColor = new QLabel(_gbPaintParams);
+          _labelPaintBkgndColor->setObjectName(QStringLiteral("_labelPaintBkgndColor"));
+          sizePolicy1.setHeightForWidth(_labelPaintBkgndColor->sizePolicy().hasHeightForWidth());
+          _labelPaintBkgndColor->setSizePolicy(sizePolicy1);
+          _labelPaintBkgndColor->setMinimumSize(QSize(65, 0));
+          _labelPaintBkgndColor->setMaximumSize(QSize(65, 16777215));
+          _labelPaintBkgndColor->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+  
+          _hlayPaintBkgndColor->addWidget(_labelPaintBkgndColor);
+  
+          _cbPaintBkgndColor = new QComboBox(_gbPaintParams);
+          _cbPaintBkgndColor->setObjectName(QStringLiteral("_cbPaintBkgndColor"));
+  
+          _hlayPaintBkgndColor->addWidget(_cbPaintBkgndColor);
+  
+  
+          _vlayPaintParams->addLayout(_hlayPaintBkgndColor);
+  
+          _hlayPaintDataColor = new QHBoxLayout();
+          _hlayPaintDataColor->setObjectName(QStringLiteral("_hlayPaintDataColor"));
+          _labelPaintDataColor = new QLabel(_gbPaintParams);
+          _labelPaintDataColor->setObjectName(QStringLiteral("_labelPaintDataColor"));
+          sizePolicy1.setHeightForWidth(_labelPaintDataColor->sizePolicy().hasHeightForWidth());
+          _labelPaintDataColor->setSizePolicy(sizePolicy1);
+          _labelPaintDataColor->setMinimumSize(QSize(65, 0));
+          _labelPaintDataColor->setMaximumSize(QSize(65, 16777215));
+          _labelPaintDataColor->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+  
+          _hlayPaintDataColor->addWidget(_labelPaintDataColor);
+  
+          _cbPaintDataColor = new QComboBox(_gbPaintParams);
+          _cbPaintDataColor->setObjectName(QStringLiteral("_cbPaintDataColor"));
+  
+          _hlayPaintDataColor->addWidget(_cbPaintDataColor);
+  
+  
+          _vlayPaintParams->addLayout(_hlayPaintDataColor);
+  
+  
+          _vlayParams->addWidget(_gbPaintParams);
+  
+          _verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  
+          _vlayParams->addItem(_verticalSpacer);
+  
+  
+          _hlayMain->addWidget(_gbParams);
+  
 
 
   // retranslateUi
-  _bnStartStop->setText(QApplication::translate("Form", "\320\241\321\202\320\260\321\200\321\202", Q_NULLPTR));
+  _bnStartStopUDP->setText(QApplication::translate("Form", "\320\241\321\202\320\260\321\200\321\202", Q_NULLPTR));
   _gbParams->setTitle(QString());
   _labelDataSource->setText(QApplication::translate("Form", "\320\230\321\201\321\202.\320\264\320\260\320\275\321\213\321\205", Q_NULLPTR));
   
   _cbDataSource->clear();
-  _cbDataSource->insertItems(0, QStringList()
-   << QApplication::translate("Form", "\320\241\320\265\321\202\321\214", Q_NULLPTR)
-   << QApplication::translate("Form", "\320\220\321\200\321\205\320\270\320\262", Q_NULLPTR)
-  );
+//  _cbDataSource->insertItems(0, QStringList()
+//   << QApplication::translate("Form", "\320\241\320\265\321\202\321\214", Q_NULLPTR)
+//   << QApplication::translate("Form", "\320\220\321\200\321\205\320\270\320\262", Q_NULLPTR)
+//  );
   
   _gbNetworkParams->setTitle(QApplication::translate("Form", "\320\235\320\260\321\201\321\202\321\200\320\276\320\271\320\272\320\270 \321\201\320\265\321\202\320\270", Q_NULLPTR));
   _labelIp->setText(QApplication::translate("Form", "\320\220\320\264\321\200\320\265\321\201", Q_NULLPTR));
@@ -321,35 +310,119 @@ void SvRlsWidget::_setupUI()
   _labelPort->setText(QApplication::translate("Form", "\320\237\320\276\321\200\321\202", Q_NULLPTR));
   
   _gbArchParams->setTitle(QApplication::translate("Form", "\320\220\321\200\321\205\320\270\320\262", Q_NULLPTR));
-  _labelArchDateBegin->setText(QApplication::translate("Form", "\320\224\320\260\321\202\320\260", Q_NULLPTR));
-  _labelArchTimeBegin->setText(QApplication::translate("Form", "\320\222\321\200\320\265\320\274\321\217", Q_NULLPTR));
+//  _labelArchDateBegin->setText(QApplication::translate("Form", "\320\224\320\260\321\202\320\260", Q_NULLPTR));
+//  _labelArchTimeBegin->setText(QApplication::translate("Form", "\320\222\321\200\320\265\320\274\321\217", Q_NULLPTR));
   _gbPaintParams->setTitle(QApplication::translate("Form", "\320\236\321\202\320\276\320\261\321\200\320\260\320\266\320\265\320\275\320\270\320\265", Q_NULLPTR));
   _labelLinePointCount->setText(QApplication::translate("Form", "\320\224\320\273\320\270\320\275\320\260 \320\273\321\203\321\207\320\260", Q_NULLPTR));
   _labelPaintBkgndColor->setText(QApplication::translate("Form", "\320\246\320\262\320\265\321\202 \321\204\320\276\320\275\320\260", Q_NULLPTR));
   _labelPaintDataColor->setText(QApplication::translate("Form", "\320\246\320\262\320\265\321\202 \320\237\320\240\320\233\320\230", Q_NULLPTR));
- // retranslateUi
+ 
+  _bnSelectArchiveFiles->setText(QApplication::translate("Form", "\320\222\321\213\320\261\321\200\320\260\321\202\321\214 \321\204\320\260\320\271\320\273\321\213", Q_NULLPTR));
+  _labelCurrentArchiveFile->setText(QApplication::translate("Form", "\320\242\320\265\320\272\321\203\321\211\320\270\320\271", Q_NULLPTR));
+  _cbRepeatArchiveFiles->setText(QApplication::translate("Form", "\320\237\320\276\320\262\321\202\320\276\321\200\321\217\321\202\321\214", Q_NULLPTR));
+  _bnStartStopArchive->setText(QApplication::translate("Form", "\320\241\321\202\320\260\321\200\321\202", Q_NULLPTR));
+  // retranslateUi
 
   
 }
 
-void SvRlsWidget::on__bnStartStop_clicked()
+void SvRlsWidget::on__cbDataSource_currentIndexChanged(int index)
 {
-  _bnStartStop->setEnabled(false);
-  emit start_stop_clicked(_params.ip, _params.port);
+  switch (_cbDataSource->itemData(index).toInt()) {
+    case svrlswdg::udp:
+      _gbArchParams->setVisible(false);
+      _gbNetworkParams->setVisible(true);
+      break;
+      
+    default:
+      _gbArchParams->setVisible(true);
+      _gbNetworkParams->setVisible(false);
+      break;
+  }
 }
 
-void SvRlsWidget::started()
+void SvRlsWidget::on__bnSelectArchiveFiles_clicked()
 {
-  _bnStartStop->setStyleSheet("background-color: tomato");
-  _bnStartStop->setText("Стоп");  
-  _bnStartStop->setEnabled(true);
+  QDir dir(_params.archive_path);
+  
+  if(!dir.exists())
+    dir.setPath(QDir::currentPath());
+  
+  _arch_files = QFileDialog::getOpenFileNames(this, tr("Выбрать файлы"), dir.path(), "Файлы архива bt2 (*.bt2);;Все файлы (*.*)");
+  
+  qSort(_arch_files);
+  
+  _editCurrentArchiveFile->setText(_arch_files.first());
+  
 }
 
-void SvRlsWidget::stopped()
+void SvRlsWidget::on__bnStartStopUDP_clicked()
 {
-   _bnStartStop->setStyleSheet("");
-   _bnStartStop->setText("Старт");
-   _bnStartStop->setEnabled(true);
+  bool ok;
+  quint32 ip = QHostAddress(_editIp->text()).toIPv4Address(&ok);
+  if(!ok) {
+    QMessageBox::critical(this, "Ошибка", "Неверный IP адрес", QMessageBox::Ok);
+    _editIp->setFocus();
+    return;
+  }
+  
+  _params.ip = ip;
+  _params.port = _spinPort->value();
+  
+  _bnStartStopUDP->setEnabled(false);
+  
+  emit start_stop_udp_clicked(_params.ip, _params.port);
+  
+}
+
+void SvRlsWidget::on__bnStartStopArchive_clicked()
+{
+  if(_arch_files.isEmpty()) {
+    QMessageBox::information(this, "Error", "Необходимо выбрать файлы", QMessageBox::Ok);
+    _bnSelectArchiveFiles->setFocus();
+    return;
+  }
+  
+  _bnStartStopArchive->setEnabled(false);
+  
+  emit start_stop_archive_clicked(&_arch_files);
+  
+}
+
+void SvRlsWidget::startedUdp()
+{
+  _bnStartStopUDP->setStyleSheet("background-color: tomato");
+  _bnStartStopUDP->setText("Стоп");  
+  _bnStartStopUDP->setEnabled(true);
+  
+  _cbDataSource->setEnabled(false);
+}
+
+void SvRlsWidget::stoppedUdp()
+{
+   _bnStartStopUDP->setStyleSheet("");
+   _bnStartStopUDP->setText("Старт");
+   _bnStartStopUDP->setEnabled(true);
+   
+   _cbDataSource->setEnabled(true);
+}
+
+void SvRlsWidget::startedArchive()
+{
+  _bnStartStopArchive->setStyleSheet("background-color: tomato");
+  _bnStartStopArchive->setText("Стоп");  
+  _bnStartStopArchive->setEnabled(true);
+  
+  _cbDataSource->setEnabled(false);
+}
+
+void SvRlsWidget::stoppedArchive()
+{
+   _bnStartStopArchive->setStyleSheet("");
+   _bnStartStopArchive->setText("Старт");
+   _bnStartStopArchive->setEnabled(true);
+   
+   _cbDataSource->setEnabled(true);
 }
 
 /** *************************************** **/

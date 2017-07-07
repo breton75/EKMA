@@ -16,6 +16,9 @@
 #include <QTimer>
 #include <qmath.h>
 #include <QConicalGradient>
+#include <QMessageBox>
+#include <QPair>
+#include <QFileDialog>
 
 //#include <QSqlQuery>
 //#include <QSqlError>
@@ -33,12 +36,20 @@
 #include <QtWidgets/QSpinBox>
 #include <QtWidgets/QTimeEdit>
 #include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QWidget>
 
 #include "sv_rls2bitthread.h"
 #include "../../Common/sv_settings.h"
 
-#define AZIMUTHS_COUNT 4096
+namespace svrlswdg {
+
+  enum {
+    udp = 0,
+    archive
+  };
+
+}
 
 struct SvRlsWidgetParams {
   int source = -1;
@@ -61,6 +72,8 @@ struct SvRlsWidgetParams {
   bool autostart = true;
   
   int grid_line_count = 12;
+  
+  QString archive_path = "";
   
 };
 
@@ -124,20 +137,27 @@ public:
   SvRlsWidgetParams params() { return _params; }
   
 public slots:
-  void started();
-  void stopped();
-  
+  void startedUdp();
+  void stoppedUdp();
+  void startedArchive();
+  void stoppedArchive();  
   
 signals:
-  void start_stop_clicked(quint32 ip, quint16 port);
+  void start_stop_udp_clicked(quint32 ip, quint16 port);
+  void start_stop_archive_clicked(QStringList *files);
 //  void stop_clicked();
   
 private slots:
-  void on__bnStartStop_clicked();
+  void on__bnStartStopUDP_clicked();
+  void on__bnStartStopArchive_clicked();
   void on__sliderLinePointCount_valueChanged(int line_point_count) { _params.line_point_count = line_point_count; _rls_painter->clear(); }
   
   void on__cbPaintBkgndColor_currentIndexChanged(int index) { _params.painter_bkgnd_color = QColor(_cbPaintBkgndColor->itemText(index)); _rls_painter->clear(); }
-  void  on__cbPaintDataColor_currentIndexChanged(int index) { _params.painter_data_color = QColor(_cbPaintDataColor->itemText(index));   _rls_painter->clear(); }
+  void on__cbPaintDataColor_currentIndexChanged(int index) { _params.painter_data_color = QColor(_cbPaintDataColor->itemText(index));   _rls_painter->clear(); }
+  
+  void on__cbDataSource_currentIndexChanged(int index);
+  
+  void on__bnSelectArchiveFiles_clicked();
   
 private:
   SvRlsWidgetParams _params;
@@ -150,7 +170,8 @@ private:
   
   int _draw_points_per_line;
 
- 
+  QStringList _arch_files = QStringList();
+  
   void _setupUI();
   
   /** *********  Элементы управления *********** **/
@@ -160,9 +181,9 @@ private:
   SvRlsPainter *_rls_painter;
   
   QVBoxLayout *_vlayControls;
-  QPushButton *_bnStartStop;
+  QPushButton *_bnStartStopUDP;
   QGroupBox *_gbParams;
-  QVBoxLayout *vlayParams;
+  QVBoxLayout *_vlayParams;
   QHBoxLayout *_hlayDataSource;
   QLabel *_labelDataSource;
   QComboBox *_cbDataSource;
@@ -176,12 +197,12 @@ private:
   QSpinBox *_spinPort;
   QGroupBox *_gbArchParams;
   QVBoxLayout *_vlayArchParams;
-  QHBoxLayout *_hlayArchDateBegin;
-  QLabel *_labelArchDateBegin;
-  QDateEdit *_dateArchBegin;
-  QHBoxLayout *_hlayArchTimeBegin;
-  QLabel *_labelArchTimeBegin;
-  QTimeEdit *_timeArchBegin;
+  QPushButton *_bnSelectArchiveFiles;
+  QHBoxLayout *_hlayCurrentArchiveFile;
+  QLabel *_labelCurrentArchiveFile;
+  QLineEdit *_editCurrentArchiveFile;
+  QCheckBox *_cbRepeatArchiveFiles;
+  QPushButton *_bnStartStopArchive;
   QGroupBox *_gbPaintParams;
   QVBoxLayout *_vlayPaintParams;
   QHBoxLayout *_hlayLinePointCount;

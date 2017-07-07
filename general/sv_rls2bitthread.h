@@ -30,7 +30,6 @@ struct StandartRLS {
 #pragma pack(pop)
 
 #define Header2bitSize 13
-
 #pragma pack(push,1)
 struct Header2bit {
    quint8 dollarChar;  // символ '$' (0x24 = 36)
@@ -41,9 +40,6 @@ struct Header2bit {
 #pragma pack(pop)
 
 #define Line2bitHeaderSize 18
-
-#define MAX_LINE_POINT_COUNT 1460
-
 #pragma pack(push,1)
 struct Line2bit
 {
@@ -53,6 +49,10 @@ struct Line2bit
   quint64 lineDT;
 };
 #pragma pack(pop)
+
+
+#define MAX_LINE_POINT_COUNT 1460
+#define AZIMUTHS_COUNT 4096
 
 struct SvRlsArchiverParams {
   QString ip = "127.0.0.1";
@@ -65,12 +65,11 @@ struct SvRlsArchiverParams {
   QTime file_duration = QTime(1, 0, 0); // один час
   QTime total_duration = QTime(0, 0, 0);
   QString date_time_format = "ddMMyy_hhmmss";
-  QString file_name_format = "{DEVICE}_{DATETIME}";
+  QString file_name_template = "{DEVICE}_{DATETIME}";
 
   QString out_ip = "127.0.0.1";
-  quint16 out_port = 8100;
+  quint16 out_port = 8001;
 };
-
 
 class SvRls2bitThread : public QThread
 {
@@ -115,13 +114,9 @@ class SvRlsArchiver : public QThread
 {
     Q_OBJECT
   public:
-    explicit SvRlsArchiver(SvRlsArchiverParams &params, QObject *parent);
+    explicit SvRlsArchiver(SvRlsArchiverParams *params, QObject *parent);
     
     ~SvRlsArchiver() { deleteLater(); }
-    
-    QDateTime cur_file_date_time;
-    QString path;
-    QString file_name;
     
     bool isPlaying() { return _playing; }
 
@@ -130,7 +125,7 @@ class SvRlsArchiver : public QThread
     QUdpSocket* _socket;
     QUdpSocket* _socket_out;
     
-    SvRlsArchiverParams _params;
+    SvRlsArchiverParams *_params;
     
     bool _playing = false;
         
@@ -143,7 +138,7 @@ class SvRlsArchiver : public QThread
     bool _new_file;
     bool _new_header;
     
-    QString _ext = "bt2";
+    QString _ext = ".bt2";
     
   protected:
     void run() Q_DECL_OVERRIDE;
@@ -159,5 +154,44 @@ class SvRlsArchiver : public QThread
 
     
 };
+
+
+class SvRlsExtractThread : public QThread
+{
+    Q_OBJECT
+  public:
+    explicit SvRlsExtractThread(void* buffer,
+                                QStringList *file_names,
+                                bool repeat,
+                                QObject *parent = 0);
+    
+    ~SvRlsExtractThread() { deleteLater(); }
+    
+    
+    bool isPlaying() { return _playing; }
+
+  private:
+    
+    void* _buffer;
+    QStringList _file_names;
+    bool _repeat;
+
+    bool _playing = false;
+    bool _finished = false;
+    
+  protected:
+    void run() Q_DECL_OVERRIDE;
+    
+  signals:
+    void lineUpdated(int lineNum, quint16 discret);
+    void NewFile();
+    void WrongFile();
+    
+  public slots:
+    void stop() { _playing = false; }
+
+    
+};
+
 
 #endif // SV_RLS2BITTHREAD_H

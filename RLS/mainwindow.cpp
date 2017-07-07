@@ -27,20 +27,20 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   /**  разбираем параметры  **/
   SvRlsWidgetParams p;
   
-  p.source = parser.isSet("source") ? (parser.value("source").toLower() == "archive" ? 1 : 0)
-                                    :  AppParams::readParam(this, "PARAMS", "source", QVariant(0)).toInt();
+  p.source = parser.isSet("source") ? (parser.value("source").toLower() == "archive" ? svrlswdg::archive : svrlswdg::udp)
+                                    :  AppParams::readParam(this, "PARAMS", "source", svrlswdg::udp).toInt();
   
   p.ip = parser.isSet("ip") ? parser.value("ip").toUInt()
                             : AppParams::readParam(this, "PARAMS", "ip", QHostAddress("127.0.0.1").toIPv4Address()).toUInt();
   
   p.port = parser.isSet("port") ? parser.value("port").toUInt()
-                                : AppParams::readParam(this, "PARAMS", "port", QVariant(8000)).toUInt();
+                                : AppParams::readParam(this, "PARAMS", "port", 8001).toUInt();
   
   p.fromdate = parser.isSet("fromdate") ? QDate::fromString(parser.value("fromdate"), "ddMMyyyy")
-                                        : AppParams::readParam(this, "PARAMS", "fromdate", QVariant(QDate::currentDate())).toDate();
+                                        : AppParams::readParam(this, "PARAMS", "fromdate", QDate::currentDate()).toDate();
   
   p.fromtime = parser.isSet("fromtime") ? QTime::fromString(parser.value("fromtime"), "hhmmss")
-                                        : AppParams::readParam(this, "PARAMS", "fromtime", QVariant(QTime::currentTime())).toTime();
+                                        : AppParams::readParam(this, "PARAMS", "fromtime", QTime::currentTime()).toTime();
   
   p.painter_bkgnd_color = parser.isSet("bcolor") ? QColor::fromRgb(parser.value("bcolor").toInt(nullptr, 16))
                                                  : QColor(AppParams::readParam(this, "PARAMS", "painter_bkgnd_color", "#000000").toString()) ; //.toInt(nullptr, 16));
@@ -49,24 +49,30 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
                                                 : QColor(AppParams::readParam(this, "PARAMS", "painter_data_color", "#FFFF00").toString());
   
 //  p.radius = parser.isSet("radius") ? parser.value("radius").toUInt() : AppParams::readParam(this, "PARAMS", "radius", QVariant(600)).toUInt();
-  p.display_point_count = parser.isSet("displaypc") ? parser.value("displaypc").toUInt() : AppParams::readParam(this, "PARAMS", "display_point_count", QVariant(640)).toUInt();
-  p.line_point_count = parser.isSet("linepc") ? parser.value("linepc").toUInt() : AppParams::readParam(this, "PARAMS", "line_point_count", QVariant(1200)).toUInt();
+  p.display_point_count = parser.isSet("displaypc") ? parser.value("displaypc").toUInt() : AppParams::readParam(this, "PARAMS", "display_point_count", 640).toUInt();
+  p.line_point_count = parser.isSet("linepc") ? parser.value("linepc").toUInt() : AppParams::readParam(this, "PARAMS", "line_point_count", 1200).toUInt();
   
   p.autostart = parser.isSet("autostart") ? true : AppParams::readParam(this, "PARAMS", "autostart", true).toBool();
   p.no_controls = parser.isSet("nocontrols") ? true : AppParams::readParam(this, "PARAMS", "nocontrols", false).toBool();
 
+  p.archive_path = parser.isSet("archive_path") ? parser.value("archive_path")
+                                      : AppParams::readParam(this, "PARAMS", "archive_path", "archive").toString();
+  
   _rls_widget = new SvRlsWidget(_buffer, p);
   _rls_widget->setParent(this);
   
   ui->vlayMain->addWidget(_rls_widget);
   
-  connect(this, SIGNAL(thread_started()), _rls_widget, SLOT(started()));
-  connect(this, SIGNAL(thread_stopped()), _rls_widget, SLOT(stopped()));
+  connect(this, SIGNAL(thread_udp_started()), _rls_widget, SLOT(startedUdp()));
+  connect(this, SIGNAL(thread_udp_stopped()), _rls_widget, SLOT(stoppedUdp()));
+  connect(this, SIGNAL(thread_archive_started()), _rls_widget, SLOT(startedArchive()));
+  connect(this, SIGNAL(thread_archive_stopped()), _rls_widget, SLOT(stoppedArchive()));
   
-  connect(_rls_widget, SIGNAL(start_stop_clicked(quint32,quint16)), this, SLOT(_start_stop_thread(quint32,quint16)));
+  connect(_rls_widget, SIGNAL(start_stop_udp_clicked(quint32,quint16)), this, SLOT(_start_stop_udp_thread(quint32,quint16)));
+  connect(_rls_widget, SIGNAL(start_stop_archive_clicked(QStringList*)), this, SLOT(_start_stop_archive_thread(QStringList*)));
   
-  if(p.autostart)
-    _start_stop_thread(p.ip, p.port);
+  if(p.autostart && (p.source == svrlswdg::udp))
+    _start_stop_udp_thread(p.ip, p.port);
     
   
   
@@ -74,9 +80,14 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-  if(_rls_thread) {
-    _rls_thread->stop();
-    while(!_rls_thread->isFinished()) QApplication::processEvents();
+  if(_rls_udp_thread) {
+    _rls_udp_thread->stop();
+    while(!_rls_udp_thread->isFinished()) QApplication::processEvents();
+  }
+  
+  if(_rls_archive_thread) {
+    _rls_archive_thread->stop();
+    while(!_rls_archive_thread->isFinished()) QApplication::processEvents();
   }
   
   /* сохраняем парметры программы */
@@ -97,28 +108,54 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
-void MainWindow::_start_stop_thread(quint32 ip, quint16 port)
+void MainWindow::_start_stop_udp_thread(quint32 ip, quint16 port)
 {
-  if(_rls_thread) {
+  if(_rls_udp_thread) {
     
-    _rls_thread->stop();
-    while(!_rls_thread->isFinished()) QApplication::processEvents();
-    delete _rls_thread;
+    _rls_udp_thread->stop();
+    while(!_rls_udp_thread->isFinished()) QApplication::processEvents();
+    delete _rls_udp_thread;
     
-    _rls_thread = nullptr;
+    _rls_udp_thread = nullptr;
     
-    emit thread_stopped();
+    emit thread_udp_stopped();
     
   }
   else {
     
-    _rls_thread = new SvRls2bitThread(_buffer, ip, port, this);
+    _rls_udp_thread = new SvRls2bitThread(_buffer, ip, port, this);
   //  connect(_rls_thread, QThread::finished, _rls_thread, &QObject::deleteLater);
-    connect(_rls_thread, SIGNAL(lineUpdated(int, quint16)), _rls_widget->painter(), SLOT(drawLine(int, quint16)));
+    connect(_rls_udp_thread, SIGNAL(lineUpdated(int, quint16)), _rls_widget->painter(), SLOT(drawLine(int, quint16)));
     
-    _rls_thread->start();
+    _rls_udp_thread->start();
     
-    emit thread_started();
+    emit thread_udp_started();
+    
+  }
+}
+
+void MainWindow::_start_stop_archive_thread(QStringList *files)
+{
+  if(_rls_archive_thread) {
+    
+    _rls_archive_thread->stop();
+    while(!_rls_archive_thread->isFinished()) QApplication::processEvents();
+    delete _rls_archive_thread;
+    
+    _rls_archive_thread = nullptr;
+    
+    emit thread_archive_stopped();
+    
+  }
+  else {
+    
+    _rls_archive_thread = new SvRlsExtractThread(_buffer, files, this);
+  //  connect(_rls_thread, QThread::finished, _rls_thread, &QObject::deleteLater);
+    connect(_rls_archive_thread, SIGNAL(lineUpdated(int, quint16)), _rls_widget->painter(), SLOT(drawLine(int, quint16)));
+    
+    _rls_archive_thread->start();
+    
+    emit thread_archive_started();
     
   }
 }

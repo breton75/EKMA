@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
   clo << QCommandLineOption (QStringList() << "p" << "port",
                              QCoreApplication::translate("main", "Порт для приема данных по протоколу UDP."),
-                             QCoreApplication::translate("main", "8000"));
+                             QCoreApplication::translate("main", "8001"));
   
   clo << QCommandLineOption ("ip",
                              QCoreApplication::translate("main", "IP адрес для прослушивания данных."),
@@ -39,9 +39,9 @@ int main(int argc, char *argv[])
                              QCoreApplication::translate("main", "Время начала просмотра архивных данных в формате 'HHMMSS'."),
                              QCoreApplication::translate("main", "current"));
 
-//  clo << QCommandLineOption (QStringList() << "r" << "radius",
-//                             QCoreApplication::translate("main", "Количество отображаемых точек."),
-//                             QCoreApplication::translate("main", "600"));
+  clo << QCommandLineOption (QStringList() << "arch" << "archive_path",
+                             QCoreApplication::translate("main", "Путь к каталогу архива."),
+                             QCoreApplication::translate("main", "archive"));
 
   clo << QCommandLineOption (QStringList() << "bc" << "bcolor",
                              QCoreApplication::translate("main", "Цвет фона дисплея."),

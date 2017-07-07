@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
                              QCoreApplication::translate("main", "8000"));
 
   clo << QCommandLineOption (QStringList() << "path" << "path_to_save",
-                             QCoreApplication::translate("main", "Каталог для сохранения файлов. Допустимо использование шаблонов {DEVICE}, {DATETIME}, {DATE}, {TIME}"),
+                             QCoreApplication::translate("main", "Каталог для сохранения файлов. Допустимо использование выражений {DEVICE}, {DATETIME}, {DATE}, {TIME}"),
                              QCoreApplication::translate("main", "archive"));
   
   clo << QCommandLineOption (QStringList() << "dev" << "device_name",
@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
                              QCoreApplication::translate("main", "Формат даты времени для подстановки в имя файла. По умолчанию 'ddMMyy_hhmmss'"),
                              QCoreApplication::translate("main", "ddMMyy_hhmmss"));
 
-  clo << QCommandLineOption (QStringList() << "fnfmt" << "file_name_format",
-                             QCoreApplication::translate("main", "Формат имени файла. По умолчанию '{DEVICE}_{DATETIME}. Допустимо использование шаблонов {DEVICE}, {DATETIME}, {DATE}, {TIME}'"),
+  clo << QCommandLineOption (QStringList() << "fntmp" << "file_name_template",
+                             QCoreApplication::translate("main", "Шаблон имени файла. По умолчанию '{DEVICE}_{DATETIME}. Допустимо использование выражений {DEVICE}, {DATETIME}, {DATE}, {TIME}'"),
                              QCoreApplication::translate("main", "{DEVICE}_{DATETIME}"));
 
   clo << QCommandLineOption ("out_ip",
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
   
   clo << QCommandLineOption ("out_port",
                              QCoreApplication::translate("main", "Порт для ретрансляции данных. По умолчанию 8100"),
-                             QCoreApplication::translate("main", "8100"));  
+                             QCoreApplication::translate("main", "8001"));  
 
   
   for(QCommandLineOption o: clo)
@@ -71,33 +71,52 @@ int main(int argc, char *argv[])
   
   setParams(&parser);
   
-  SvRlsArchiver *rls_archiver = new SvRlsArchiver(params, 0);
+  SvRlsArchiver *rls_archiver = new SvRlsArchiver(&params, 0);
   rls_archiver->start();
   
   bool wait_cmd = true;
-  QTextStream *qtin = new  QTextStream(stdin);
-  QTextStream *qtout = new  QTextStream(stdout);
-  QString line;
+  QTextStream qtin(stdin);
+  QTextStream qtout(stdout);
+  QString cmd;
   while(wait_cmd) {
 
-    line = qtin->readLine();
+    qtin >> cmd; // = qtin->readLine();
     
-    qDebug() << line;
-    
-    if(line == "stop") {
-      wait_cmd = false;
-//      rls_archiver->stop();
-//      while(!rls_archiver->isFinished()) QCoreApplication::processEvents();
+    if(cmd == "stop") {
+//      wait_cmd = false;
+      rls_archiver->stop();
+      while(!rls_archiver->isFinished()) QCoreApplication::processEvents();
+      rls_archiver = nullptr;
+      
+      qtout << "Archiving stoppped" << endl;
+               
     }
-    
+    else if (cmd == "start" && !rls_archiver) {
+      if(!rls_archiver) {
+        
+        qtout << "Starting archiving" << endl;
+        
+        rls_archiver = new SvRlsArchiver(&params, 0);
+        rls_archiver->start();
+      }
+      
+    }
+    else if(cmd == "quit") {
+      wait_cmd = false;
+      if(rls_archiver) {
+        rls_archiver->stop();
+        while(!rls_archiver->isFinished()) QCoreApplication::processEvents();
+      }
+    }
   }
-  
+    
+  return a.exec();
+  qtout << "Closing" << endl;
   if(rls_archiver) {
     rls_archiver->stop();
     while(!rls_archiver->isFinished()) QCoreApplication::processEvents();
   }
   
-  return a.exec();
 }
 
 void setParams(QCommandLineParser *parser)
@@ -106,11 +125,10 @@ void setParams(QCommandLineParser *parser)
   if(parser->isSet("port")) params.port = parser->value("port").toUInt();
   if(parser->isSet("device_name")) params.device_name = parser->value("device_name");
   if(parser->isSet("path")) params.path = parser->value("path");
-  if(params.path.right(1) == "\\" && params.path.right(1) == "/") params.path += "/";
   if(parser->isSet("total_duration")) params.total_duration = QTime::fromString(parser->value("total_duration"), "hhmmss");
   if(parser->isSet("file_duration")) params.file_duration = QTime::fromString(parser->value("file_duration"), "hhmmss");
   if(parser->isSet("date_time_format")) params.date_time_format = parser->value("date_time_format");
-  if(parser->isSet("file_name_format")) params.file_name_format = parser->value("file_name_format");
+  if(parser->isSet("file_name_template")) params.file_name_template = parser->value("file_name_template");
   if(parser->isSet("out_ip")) params.out_ip = parser->value("out_ip");
   if(parser->isSet("out_port")) params.out_port = parser->value("out_port").toUInt();
 //  params. = parser->value("");
