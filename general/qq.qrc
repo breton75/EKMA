@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/new">
+        <file>icons/Refresh.ico</file>
+        <file>icons/Back.ico</file>
+        <file>icons/Cancel.ico</file>
+        <file>icons/Folder open.ico</file>
+        <file>icons/Health.ico</file>
+        <file>icons/Ok2.ico</file>
+        <file>icons/Pen.ico</file>
+        <file>icons/Search.ico</file>
+        <file>icons/Stats.ico</file>
+        <file>icons/Zoom in.ico</file>
+        <file>icons/Zoom out.ico</file>
+    </qresource>
+</RCC>

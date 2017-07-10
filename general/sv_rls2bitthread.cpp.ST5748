@@ -288,7 +288,7 @@ void SvRlsExtractThread::run()
   void* line_data;
 
   /* подобрано эмпирическим путем */
-  quint64 rotation_speed = 10 * 1000000 / AZIMUTHS_COUNT;
+  quint64 rotation_speed = 40 * 1000000 / AZIMUTHS_COUNT;
   
   QFile* file = new QFile();
   
@@ -303,13 +303,9 @@ void SvRlsExtractThread::run()
       file->setFileName(file_name);
       if(!file->open(QIODevice::ReadOnly))
       {
-        emit fileReadError(file_name, file->errorString());
-        _playing = false;
-//        qDebug() << file->errorString();
+        emit WrongFile();
         break;
       }
-      
-      emit fileReaded(file_name);
       
       /** формируем датаграмму, как если бы считали ее по udp **/
       file->seek(0);
@@ -395,11 +391,7 @@ void SvRlsExtractThread::run()
         
       }
       
-      file->close();
-      
     }
-    
-    if(file->isOpen()) file->close();
     
     if(!_repeat) {
       _playing = false;
@@ -408,7 +400,6 @@ void SvRlsExtractThread::run()
     
   }
   
-  file->close();
   free(datagram);
   _finished = true;  
   qDebug() << "recovery finished";  

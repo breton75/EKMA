@@ -25,10 +25,10 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   memset(_buffer, char(0), AZIMUTHS_COUNT * MAX_LINE_POINT_COUNT);
   
   /**  разбираем параметры  **/
-  SvRlsWidgetParams p;
+  svgawdg::SvGAWidgetParams p;
   
-  p.source = parser.isSet("source") ? (parser.value("source").toLower() == "archive" ? svrlswdg::archive : svrlswdg::udp)
-                                    :  AppParams::readParam(this, "PARAMS", "source", svrlswdg::udp).toInt();
+  p.source = parser.isSet("source") ? (parser.value("source").toLower() == "archive" ? svgawdg::archive : svgawdg::udp)
+                                    :  AppParams::readParam(this, "PARAMS", "source", svgawdg::udp).toInt();
   
   p.ip = parser.isSet("ip") ? parser.value("ip").toUInt()
                             : AppParams::readParam(this, "PARAMS", "ip", QHostAddress("127.0.0.1").toIPv4Address()).toUInt();
@@ -58,20 +58,30 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   p.archive_path = parser.isSet("archive_path") ? parser.value("archive_path")
                                       : AppParams::readParam(this, "PARAMS", "archive_path", "archive").toString();
   
-  _rls_widget = new SvRlsWidget(_buffer, p);
-  _rls_widget->setParent(this);
+  p.y_autoscale = true;
+  p.x_range = p.line_point_count;
   
-  ui->vlayMain->addWidget(_rls_widget);
+  _ga_widget = new svgawdg::SvGAWidget(_buffer, p);
+  _ga_widget->setParent(this);
   
-  connect(this, SIGNAL(thread_udp_started()), _rls_widget, SLOT(startedUdp()));
-  connect(this, SIGNAL(thread_udp_stopped()), _rls_widget, SLOT(stoppedUdp()));
-  connect(this, SIGNAL(thread_archive_started()), _rls_widget, SLOT(startedArchive()));
-  connect(this, SIGNAL(thread_archive_stopped()), _rls_widget, SLOT(stoppedArchive()));
+  svgraph::GraphParams gp;
+  gp.line_color = p.painter_data_color;
+  gp.line_width = 2;
+  _ga_widget->painter()->addGraph(0, gp);
+  _ga_widget->painter()->appendData(0, -500);
+  _ga_widget->painter()->appendData(0, 500);
+    
+  ui->vlayMain->addWidget(_ga_widget);
   
-  connect(_rls_widget, SIGNAL(start_stop_udp_clicked(quint32,quint16)), this, SLOT(_start_stop_udp_thread(quint32,quint16)));
-  connect(_rls_widget, SIGNAL(start_stop_archive_clicked(QStringList*)), this, SLOT(_start_stop_archive_thread(QStringList*)));
+  connect(this, SIGNAL(thread_udp_started()), _ga_widget, SLOT(startedUdp()));
+  connect(this, SIGNAL(thread_udp_stopped()), _ga_widget, SLOT(stoppedUdp()));
+  connect(this, SIGNAL(thread_archive_started()), _ga_widget, SLOT(startedArchive()));
+  connect(this, SIGNAL(thread_archive_stopped()), _ga_widget, SLOT(stoppedArchive()));
+  
+  connect(_ga_widget, SIGNAL(start_stop_udp_clicked(quint32,quint16)), this, SLOT(_start_stop_udp_thread(quint32,quint16)));
+  connect(_ga_widget, SIGNAL(start_stop_archive_clicked(QStringList*)), this, SLOT(_start_stop_archive_thread(QStringList*)));
 
-  if(p.autostart && (p.source == svrlswdg::udp))
+  if(p.autostart && (p.source == svgawdg::udp))
     _start_stop_udp_thread(p.ip, p.port);
     
   
@@ -80,20 +90,20 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-  if(_rls_udp_thread) {
-    _rls_udp_thread->stop();
-    while(!_rls_udp_thread->isFinished()) QApplication::processEvents();
+  if(_ga_udp_thread) {
+    _ga_udp_thread->stop();
+    while(!_ga_udp_thread->isFinished()) QApplication::processEvents();
   }
   
-  if(_rls_archive_thread) {
-    _rls_archive_thread->stop();
-    while(!_rls_archive_thread->isFinished()) QApplication::processEvents();
+  if(_ga_archive_thread) {
+    _ga_archive_thread->stop();
+    while(!_ga_archive_thread->isFinished()) QApplication::processEvents();
   }
   
   /* сохраняем парметры программы */
   AppParams::saveWindowParams(this, this->size(), this->pos(), this->windowState());
   
-  SvRlsWidgetParams p = _rls_widget->params();
+  svgawdg::SvGAWidgetParams p = _ga_widget->params();
   AppParams::saveParam(this, "PARAMS", "source", p.source);
   AppParams::saveParam(this, "PARAMS", "ip", p.ip);
   AppParams::saveParam(this, "PARAMS", "port", p.port);
@@ -110,24 +120,24 @@ MainWindow::~MainWindow()
 
 void MainWindow::_start_stop_udp_thread(quint32 ip, quint16 port)
 {
-  if(_rls_udp_thread) {
+  if(_ga_udp_thread) {
     
-    _rls_udp_thread->stop();
-    while(!_rls_udp_thread->isFinished()) QApplication::processEvents();
-    delete _rls_udp_thread;
+    _ga_udp_thread->stop();
+    while(!_ga_udp_thread->isFinished()) QApplication::processEvents();
+    delete _ga_udp_thread;
     
-    _rls_udp_thread = nullptr;
+    _ga_udp_thread = nullptr;
     
     emit thread_udp_stopped();
     
   }
   else {
     
-    _rls_udp_thread = new SvRls2bitThread(_buffer, ip, port, this);
-  //  connect(_rls_thread, QThread::finished, _rls_thread, &QObject::deleteLater);
-    connect(_rls_udp_thread, SIGNAL(lineUpdated(int, quint16)), _rls_widget->painter(), SLOT(drawLine(int, quint16)));
+    _ga_udp_thread = new SvRls2bitThread(_buffer, ip, port, this);
+  //  connect(_chart_thread, QThread::finished, _chart_thread, &QObject::deleteLater);
+    connect(_ga_udp_thread, SIGNAL(lineUpdated(int, quint16)), _ga_widget->painter(), SLOT(drawLine(int, quint16)));
     
-    _rls_udp_thread->start();
+    _ga_udp_thread->start();
     
     emit thread_udp_started();
     
@@ -136,26 +146,28 @@ void MainWindow::_start_stop_udp_thread(quint32 ip, quint16 port)
 
 void MainWindow::_start_stop_archive_thread(QStringList *files)
 {
-  if(_rls_archive_thread) {
+  if(_ga_archive_thread) {
     
-    _rls_archive_thread->stop();
-    while(!_rls_archive_thread->isFinished()) QApplication::processEvents();
-    delete _rls_archive_thread;
+    _ga_archive_thread->stop();
+    while(!_ga_archive_thread->isFinished()) QApplication::processEvents();
+    delete _ga_archive_thread;
     
-    _rls_archive_thread = nullptr;
+    _ga_archive_thread = nullptr;
     
     emit thread_archive_stopped();
     
   }
   else {
     
-    _rls_archive_thread = new SvRlsExtractThread(_buffer, files, this);
-  //  connect(_rls_thread, QThread::finished, _rls_thread, &QObject::deleteLater);
-    connect(_rls_archive_thread, SIGNAL(lineUpdated(int, quint16)), _rls_widget->painter(), SLOT(drawLine(int, quint16)));
-    connect(_rls_archive_thread, SIGNAL(fileReaded(QString)), _rls_widget, SLOT(fileReaded(QString)));
-    connect(_rls_archive_thread, SIGNAL(fileReadError(QString, QString)), this, SLOT(fileReadError(QString, QString)));
+    _ga_archive_thread = new SvRlsExtractThread(_buffer, files, this);
+  //  connect(_chart_thread, QThread::finished, _chart_thread, &QObject::deleteLater);
     
-    _rls_archive_thread->start();
+    connect(_ga_archive_thread, SIGNAL(lineUpdated(int, quint16)), _ga_widget->painter(), SLOT(drawLine(int, quint16)));
+    
+    connect(_ga_archive_thread, SIGNAL(fileReaded(QString)), _ga_widget, SLOT(fileReaded(QString)));
+    connect(_ga_archive_thread, SIGNAL(fileReadError(QString, QString)), this, SLOT(fileReadError(QString, QString)));
+    
+    _ga_archive_thread->start();
     
     emit thread_archive_started();
     
@@ -167,11 +179,11 @@ void MainWindow::fileReadError(QString filename, QString error)
   QFileInfo fi(filename);
   QMessageBox::critical(this, "Error", QString("Ошибка чтения файла %1\n%2").arg(fi.fileName()).arg(error), QMessageBox::Ok);
   
-  _rls_archive_thread->stop();
-  while(!_rls_archive_thread->isFinished()) QApplication::processEvents();
-  delete _rls_archive_thread;
+  _ga_archive_thread->stop();
+  while(!_ga_archive_thread->isFinished()) QApplication::processEvents();
+  delete _ga_archive_thread;
   
-  _rls_archive_thread = nullptr;
+  _ga_archive_thread = nullptr;
   
   emit thread_archive_stopped();
   

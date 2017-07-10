@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/main">
+        <file>../../Common/Icons/Basic/Stats.ico</file>
+        <file>../../Common/Icons/Basic/Folder open.ico</file>
+        <file>../../Common/Icons/Basic/Ok2.ico</file>
+        <file>../../Common/Icons/Basic/Refresh.ico</file>
+        <file>../../Common/Icons/Basic/Search.ico</file>
+        <file>../../Common/Icons/Basic/Zoom in.ico</file>
+        <file>../../Common/Icons/Basic/Zoom out.ico</file>
+        <file>../../Common/Icons/Basic/Back.ico</file>
+        <file>../../Common/Icons/Basic/Cancel.ico</file>
+        <file>../../Common/Icons/Basic/Health.ico</file>
+        <file>../../Common/Icons/Basic/Pen.ico</file>
+    </qresource>
+</RCC>

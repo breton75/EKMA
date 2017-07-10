@@ -184,8 +184,8 @@ class SvRlsExtractThread : public QThread
     
   signals:
     void lineUpdated(int lineNum, quint16 discret);
-    void NewFile();
-    void WrongFile();
+    void fileReaded(QString filename);
+    void fileReadError(QString filename, QString error);
     
   public slots:
     void stop() { _playing = false; }

@@ -1,10 +1,6 @@
-#include "sv_rlswidget.h"
+#include "sv_gawidget.h"
 
-
-//SvSingleRlsWindow* SINGLERLS_UI;
-//SvSelectRlsArchWindow* SELECT_RSL_ARCH_UI;
-
-SvRlsWidget::SvRlsWidget(void *buffer, SvRlsWidgetParams &params)
+svgawdg::SvGAWidget::SvGAWidget(void *buffer, svgawdg::SvGAWidgetParams &params)
 {
   _params = params;
   _buffer = buffer;
@@ -13,8 +9,8 @@ SvRlsWidget::SvRlsWidget(void *buffer, SvRlsWidgetParams &params)
   
   _setupUI();  
   
-  _cbDataSource->addItem("UDP", QVariant(svrlswdg::udp));
-  _cbDataSource->addItem("\320\220\321\200\321\205\320\270\320\262", QVariant(svrlswdg::archive));
+  _cbDataSource->addItem("UDP", QVariant(svgawdg::udp));
+  _cbDataSource->addItem("\320\220\321\200\321\205\320\270\320\262", QVariant(svgawdg::archive));
 
   QStringList colorNames = QColor::colorNames();
 
@@ -50,23 +46,23 @@ SvRlsWidget::SvRlsWidget(void *buffer, SvRlsWidgetParams &params)
   
 }
 
-void SvRlsWidget::_setupUI()
+void svgawdg::SvGAWidget::_setupUI()
 {
-  this->setObjectName(tr("SvRlsWidget"));
+  this->setObjectName(tr("SvGAWidget"));
 
   _hlayMain = new QHBoxLayout(this);
   _hlayMain->setObjectName(QStringLiteral("_hlayMain"));
   
-  _rls_painter = new SvRlsPainter(_buffer, &_params);
-  _rls_painter->setParent(this);
-  _rls_painter->setObjectName(QStringLiteral("_rls_painter"));
+  _ga_painter = new svgawdg::SvGAPainter(_buffer, &_params);
+  _ga_painter->setParent(this);
+  _ga_painter->setObjectName(QStringLiteral("_ga_painter"));
   QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   sizePolicy.setHorizontalStretch(0);
   sizePolicy.setVerticalStretch(0);
-  sizePolicy.setHeightForWidth(_rls_painter->sizePolicy().hasHeightForWidth());
-  _rls_painter->setSizePolicy(sizePolicy);
+  sizePolicy.setHeightForWidth(_ga_painter->sizePolicy().hasHeightForWidth());
+  _ga_painter->setSizePolicy(sizePolicy);
 
-  _hlayMain->addWidget(_rls_painter);
+  _hlayMain->addWidget(_ga_painter);
   
           _gbParams = new QGroupBox(this);
           _gbParams->setObjectName(QStringLiteral("_gbParams"));
@@ -321,10 +317,10 @@ void SvRlsWidget::_setupUI()
   
 }
 
-void SvRlsWidget::on__cbDataSource_currentIndexChanged(int index)
+void svgawdg::SvGAWidget::on__cbDataSource_currentIndexChanged(int index)
 {
   switch (_cbDataSource->itemData(index).toInt()) {
-    case svrlswdg::udp:
+    case svgawdg::udp:
       _gbArchParams->setVisible(false);
       _gbNetworkParams->setVisible(true);
       break;
@@ -336,7 +332,7 @@ void SvRlsWidget::on__cbDataSource_currentIndexChanged(int index)
   }
 }
 
-void SvRlsWidget::on__bnSelectArchiveFiles_clicked()
+void svgawdg::SvGAWidget::on__bnSelectArchiveFiles_clicked()
 {
   QDir dir(_params.archive_path);
   
@@ -352,7 +348,7 @@ void SvRlsWidget::on__bnSelectArchiveFiles_clicked()
   
 }
 
-void SvRlsWidget::on__bnStartStopUDP_clicked()
+void svgawdg::SvGAWidget::on__bnStartStopUDP_clicked()
 {
   bool ok;
   quint32 ip = QHostAddress(_editIp->text()).toIPv4Address(&ok);
@@ -371,7 +367,7 @@ void SvRlsWidget::on__bnStartStopUDP_clicked()
   
 }
 
-void SvRlsWidget::on__bnStartStopArchive_clicked()
+void svgawdg::SvGAWidget::on__bnStartStopArchive_clicked()
 {
   if(_arch_files.isEmpty()) {
     QMessageBox::information(this, "Error", "Необходимо выбрать файлы", QMessageBox::Ok);
@@ -385,7 +381,7 @@ void SvRlsWidget::on__bnStartStopArchive_clicked()
   
 }
 
-void SvRlsWidget::startedUdp()
+void svgawdg::SvGAWidget::startedUdp()
 {
   _bnStartStopUDP->setStyleSheet("background-color: tomato");
   _bnStartStopUDP->setText("Стоп");  
@@ -394,7 +390,7 @@ void SvRlsWidget::startedUdp()
   _cbDataSource->setEnabled(false);
 }
 
-void SvRlsWidget::stoppedUdp()
+void svgawdg::SvGAWidget::stoppedUdp()
 {
    _bnStartStopUDP->setStyleSheet("");
    _bnStartStopUDP->setText("Старт");
@@ -403,7 +399,7 @@ void SvRlsWidget::stoppedUdp()
    _cbDataSource->setEnabled(true);
 }
 
-void SvRlsWidget::startedArchive()
+void svgawdg::SvGAWidget::startedArchive()
 {
   _bnStartStopArchive->setStyleSheet("background-color: tomato");
   _bnStartStopArchive->setText("Стоп");  
@@ -412,7 +408,7 @@ void SvRlsWidget::startedArchive()
   _cbDataSource->setEnabled(false);
 }
 
-void SvRlsWidget::stoppedArchive()
+void svgawdg::SvGAWidget::stoppedArchive()
 {
    _bnStartStopArchive->setStyleSheet("");
    _bnStartStopArchive->setText("Старт");
@@ -421,7 +417,7 @@ void SvRlsWidget::stoppedArchive()
    _cbDataSource->setEnabled(true);
 }
 
-void SvRlsWidget::fileReaded(QString filename)
+void svgawdg::SvGAWidget::fileReaded(QString filename)
 {
   QFileInfo fi(filename);
   _editCurrentArchiveFile->setText(fi.fileName());
@@ -429,137 +425,405 @@ void SvRlsWidget::fileReaded(QString filename)
 
 /** *************************************** **/
 
-SvRlsPainter::SvRlsPainter(void *buffer, const SvRlsWidgetParams *params)
+
+
+svgawdg::SvGAPainter::SvGAPainter(void *buffer, SvGAWidgetParams *params, QWidget *parent)
 {
+  setParent(parent);
+  
   _params = params;
   _buffer = buffer;
   
-  _data_angle_step = double(2 * M_PI) / double(AZIMUTHS_COUNT);
-  _indicator_angle_step = 360.0 / AZIMUTHS_COUNT; // 16 * 360
+  setupUi();
   
-  _img = QImage(_params->display_point_count, _params->display_point_count, QImage::Format_RGB888);
-  _img.fill(_params->painter_bkgnd_color);
+  spinXRange->setValue(_params->x_range);
+  bnYAutoscale->setChecked(_params->y_autoscale);  
   
-  
-  _radius = qreal(_params->display_point_count)/2;
-  _indicator_center = QPointF(_radius, _radius);
-
-  _indicator.setCenter(_indicator_center);
-  _indicator.setColorAt(0.95, QColor(0, 0, 0, 0));
-  _indicator.setColorAt(1, _params->painter_data_color);
+  on_bnResetChart_clicked();
   
   _timer.setInterval(20);
   _timer.setSingleShot(false);
-  connect(&_timer, SIGNAL(timeout()), this, SLOT(repaint()));
+  connect(&_timer, SIGNAL(timeout()), this, SLOT(replot()));
   _timer.start();
-
+  
+  _customplot->setBackground(QBrush(_params->painter_bkgnd_color));// StyleSheet("background-color: #FF0000");
+  _customplot->xAxis->setTickLabelColor(_params->painter_data_color);
+  _customplot->yAxis->setTickLabelColor(_params->painter_data_color);
+  
 }
 
-void SvRlsPainter::drawLine(int lineNum, quint16 discret)
+void svgawdg::SvGAPainter::setupUi()
+{
+//    this->setObjectName(QStringLiteral("SvChartWidget1"));
+  
+    vlayMain = new QVBoxLayout(this);
+    vlayMain->setObjectName(QStringLiteral("vlayMain"));
+    
+    hlay1 = new QHBoxLayout();
+    hlay1->setSpacing(6);
+    hlay1->setObjectName(QStringLiteral("hlay1"));
+    hlay1->setContentsMargins(4, -1, -1, -1);
+    
+    bnResetChart = new QPushButton(this);
+    bnResetChart->setObjectName(QStringLiteral("bnResetChart"));
+    bnResetChart->setMaximumSize(QSize(25, 16777215));
+    
+    QIcon icon;
+    icon.addFile(QStringLiteral(":/new/icons/Refresh.ico"), QSize(), QIcon::Normal, QIcon::Off);
+    bnResetChart->setIcon(icon);
+
+    hlay1->addWidget(bnResetChart);
+
+    frameXRange = new QFrame(this);
+    frameXRange->setObjectName(QStringLiteral("frameXRange"));
+    frameXRange->setFrameShape(QFrame::StyledPanel);
+    frameXRange->setFrameShadow(QFrame::Raised);
+    hlayXRange = new QHBoxLayout(frameXRange);
+    hlayXRange->setObjectName(QStringLiteral("hlayXRange"));
+    hlayXRange->setContentsMargins(4, 4, 4, 4);
+    hspacer1 = new QSpacerItem(122, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    hlayXRange->addItem(hspacer1);
+
+    bnXRangeDown = new QPushButton(frameXRange);
+    bnXRangeDown->setObjectName(QStringLiteral("bnXRangeDown"));
+    bnXRangeDown->setMaximumSize(QSize(25, 16777215));
+    QIcon icon1;
+    icon1.addFile(QStringLiteral(":/new/icons/Zoom out.ico"), QSize(), QIcon::Normal, QIcon::Off);
+    bnXRangeDown->setIcon(icon1);
+
+    hlayXRange->addWidget(bnXRangeDown);
+
+    hspacer2 = new QSpacerItem(123, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    hlayXRange->addItem(hspacer2);
+
+    bnXRangeActual = new QPushButton(frameXRange);
+    bnXRangeActual->setObjectName(QStringLiteral("bnXRangeActual"));
+    bnXRangeActual->setMaximumSize(QSize(25, 16777215));
+    QIcon icon2;
+    icon2.addFile(QStringLiteral(":/new/icons/Search.ico"), QSize(), QIcon::Normal, QIcon::Off);
+    bnXRangeActual->setIcon(icon2);
+
+    hlayXRange->addWidget(bnXRangeActual);
+
+    hspacer3 = new QSpacerItem(122, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    hlayXRange->addItem(hspacer3);
+
+    spinXRange = new QSpinBox(frameXRange);
+    spinXRange->setObjectName(QStringLiteral("spinXRange"));
+    spinXRange->setMinimum(10);
+    spinXRange->setMaximum(10000);
+
+    hlayXRange->addWidget(spinXRange);
+
+    bnXSetRange = new QPushButton(frameXRange);
+    bnXSetRange->setObjectName(QStringLiteral("bnXSetRange"));
+    bnXSetRange->setMaximumSize(QSize(25, 16777215));
+    QIcon icon3;
+    icon3.addFile(QStringLiteral(":/new/icons/Ok2.ico"), QSize(), QIcon::Normal, QIcon::Off);
+    bnXSetRange->setIcon(icon3);
+
+    hlayXRange->addWidget(bnXSetRange);
+
+    hspacer4 = new QSpacerItem(123, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    hlayXRange->addItem(hspacer4);
+
+    bnXRangeUp = new QPushButton(frameXRange);
+    bnXRangeUp->setObjectName(QStringLiteral("bnXRangeUp"));
+    bnXRangeUp->setMaximumSize(QSize(25, 16777215));
+    QIcon icon4;
+    icon4.addFile(QStringLiteral(":/new/icons/Zoom in.ico"), QSize(), QIcon::Normal, QIcon::Off);
+    bnXRangeUp->setIcon(icon4);
+
+    hlayXRange->addWidget(bnXRangeUp);
+
+    hspacer5 = new QSpacerItem(122, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    hlayXRange->addItem(hspacer5);
+
+
+    hlay1->addWidget(frameXRange);
+
+
+    vlayMain->addLayout(hlay1);
+
+    hlay2 = new QHBoxLayout();
+    hlay2->setObjectName(QStringLiteral("hlay2"));
+    frameYRange = new QFrame(this);
+    frameYRange->setObjectName(QStringLiteral("frameYRange"));
+    frameYRange->setFrameShape(QFrame::StyledPanel);
+    frameYRange->setFrameShadow(QFrame::Raised);
+    vlayYRange = new QVBoxLayout(frameYRange);
+    vlayYRange->setSpacing(2);
+    vlayYRange->setObjectName(QStringLiteral("vlayYRange"));
+    vlayYRange->setContentsMargins(4, 4, 4, 4);
+    bnYAutoscale = new QPushButton(frameYRange);
+    bnYAutoscale->setObjectName(QStringLiteral("bnYAutoscale"));
+    bnYAutoscale->setMaximumSize(QSize(25, 16777215));
+    QIcon icon5;
+    icon5.addFile(QStringLiteral(":/new/icons/Stats.ico"), QSize(), QIcon::Normal, QIcon::Off);
+    bnYAutoscale->setIcon(icon5);
+    bnYAutoscale->setCheckable(true);
+  
+    vlayYRange->addWidget(bnYAutoscale);
+
+    vspacer1 = new QSpacerItem(20, 84, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+    vlayYRange->addItem(vspacer1);
+
+    bnYRangeDown = new QPushButton(frameYRange);
+    bnYRangeDown->setObjectName(QStringLiteral("bnYRangeDown"));
+    bnYRangeDown->setMaximumSize(QSize(25, 16777215));
+    bnYRangeDown->setIcon(icon4);
+
+    vlayYRange->addWidget(bnYRangeDown);
+
+    vspacer2 = new QSpacerItem(20, 85, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+    vlayYRange->addItem(vspacer2);
+
+    bnYRangeActual = new QPushButton(frameYRange);
+    bnYRangeActual->setObjectName(QStringLiteral("bnYRangeActual"));
+    bnYRangeActual->setMaximumSize(QSize(25, 16777215));
+    bnYRangeActual->setIcon(icon2);
+
+    vlayYRange->addWidget(bnYRangeActual);
+
+    vspacer3 = new QSpacerItem(20, 84, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+    vlayYRange->addItem(vspacer3);
+
+    bnYRangeUp = new QPushButton(frameYRange);
+    bnYRangeUp->setObjectName(QStringLiteral("bnYRangeUp"));
+    bnYRangeUp->setMaximumSize(QSize(25, 16777215));
+    QIcon icon6;
+    icon6.addFile(QStringLiteral(":/new/icons/Zoom out.ico"), QSize(), QIcon::Normal, QIcon::Off);
+    bnYRangeUp->setIcon(icon6);
+
+    vlayYRange->addWidget(bnYRangeUp);
+
+    vspacer4 = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+    vlayYRange->addItem(vspacer4);
+
+    hlay2->addWidget(frameYRange);
+
+
+    _customplot = new QCustomPlot(this);
+    _customplot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    _customplot->xAxis->setRange(0, _params->x_range, Qt::AlignLeft);
+    
+    _customplot->yAxis->setRange(0, 1, Qt::AlignCenter);
+//    _customplot->axisRect()->setupFullAxesBox(true);
+//    _customplot->yAxis->setScaleType(QCPAxis::stLogarithmic);
+//    _customplot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    _customplot->legend->setVisible(true);
+        
+    hlay2->addWidget(_customplot);
+    
+    vlayMain->addLayout(hlay2);
+
+    frameXRange->setVisible(false);
+    frameYRange->setVisible(false);
+    bnResetChart->setVisible(false);
+//    retranslateUi(this);
+
+    QMetaObject::connectSlotsByName(this);
+} // setupUi
+
+void svgawdg::SvGAPainter::addGraph(int graph_id, svgraph::GraphParams &graphParams)
+{
+  /* если такой график уже есть, то ничего не добавляем и выходим */
+  if(findGraph(graph_id))
+    return;
+    
+  svgawdg::GRAPH* g = new svgawdg::GRAPH;
+  g->params = graphParams;
+  g->graph = _customplot->addGraph();
+  
+  _graphs.insert(graph_id, g);
+
+  QPen pen(graphParams.line_color);
+  pen.setStyle(Qt::PenStyle(graphParams.line_style));
+  pen.setWidth(graphParams.line_width);
+    
+  _graphs.value(graph_id)->graph->setPen(pen);
+  _graphs.value(graph_id)->graph->setName(svgraph::GraphTypes.value(graph_id));
+  
+  
+  _graphs.value(graph_id)->graph->setLineStyle(QCPGraph::lsLine); //lsImpulse);lsLine // LeStyle 
+  _graphs.value(graph_id)->graph->setAntialiased(true);
+  
+}
+
+void svgawdg::SvGAPainter::setGraphParams(int graph_id, svgraph::GraphParams &graphParams)
+{
+  _graphs.value(graph_id)->params = graphParams;
+  
+  QPen pen(graphParams.line_color);
+  pen.setStyle(Qt::PenStyle(graphParams.line_style));
+  pen.setWidth(graphParams.line_width);
+    
+  _graphs.value(graph_id)->graph->setPen(pen);
+  
+  _customplot->repaint();
+  
+}
+
+void svgawdg::SvGAPainter::removeGraph(int graph_id)
+{
+  /* очищаем и удаляем graph */
+  _graphs.value(graph_id)->graph->clearData();
+  _customplot->removeGraph(_graphs.value(graph_id)->graph);
+  
+  /* удаляем GRAPH */
+  delete _graphs.value(graph_id);
+  
+  /* удаляем запись о графике из map'а */
+  _graphs.remove(graph_id);
+  
+  _customplot->replot();
+  
+}
+
+void svgawdg::SvGAPainter::appendData(int graph_id, double y)
+{
+  double x = _graphs.value(graph_id)->graph->data()->count();
+  _graphs.value(graph_id)->graph->data()->insert(x, QCPData(x, y));
+  
+  setMaxMinY(y);
+  
+  if(_params->y_autoscale)
+    setActualYRange();
+}
+
+void svgawdg::SvGAPainter::insertData(int graph_id, QCPData xy)
+{
+  _graphs.value(graph_id)->graph->data()->insert(xy.key, xy);
+  
+  setMaxMinY(xy.value);
+  
+  if(_params->y_autoscale)
+    setActualYRange();
+}
+
+void svgawdg::SvGAPainter::on_bnXRangeUp_clicked()
+{
+  _params->x_range *= 1.25;
+  _customplot->xAxis->setRangeUpper(_params->x_range);
+  _customplot->replot(QCustomPlot::rpQueued);
+}
+
+void svgawdg::SvGAPainter::on_bnXRangeDown_clicked()
+{
+  _params->x_range /= 1.25;
+  _customplot->xAxis->setRangeUpper(_params->x_range);
+  _customplot->replot(QCustomPlot::rpQueued);
+}
+
+void svgawdg::SvGAPainter::on_bnXRangeActual_clicked()
+{
+  _customplot->xAxis->setRange(0, _customplot->graph()->data()->count(), Qt::AlignLeft);
+  _customplot->replot(QCustomPlot::rpQueued);
+}
+
+void svgawdg::SvGAPainter::on_bnXSetRange_clicked()
+{
+  _params->x_range = spinXRange->value();
+  _customplot->xAxis->setRangeUpper(_params->x_range);
+  _customplot->replot(QCustomPlot::rpQueued);
+}
+
+void svgawdg::SvGAPainter::on_bnYRangeUp_clicked()
+{
+  _customplot->yAxis->setRangeUpper(_customplot->yAxis->range().upper * 1.25);
+  _customplot->yAxis->setRangeLower(_customplot->yAxis->range().lower * 1.25);
+  _customplot->replot(QCustomPlot::rpQueued);
+}
+
+void svgawdg::SvGAPainter::on_bnYRangeDown_clicked()
+{
+  _customplot->yAxis->setRangeUpper(_customplot->yAxis->range().upper * 0.75);
+  _customplot->yAxis->setRangeLower(_customplot->yAxis->range().lower * 0.75);
+  _customplot->replot(QCustomPlot::rpQueued);
+}
+
+void svgawdg::SvGAPainter::on_bnYRangeActual_clicked()
+{
+  setActualYRange();
+}
+
+void svgawdg::SvGAPainter::setActualYRange()
+{
+  _customplot->yAxis->setRange(_y_min, _y_max);
+  _customplot->replot(QCustomPlot::rpQueued);
+}
+
+void svgawdg::SvGAPainter::on_bnResetChart_clicked()
+{
+  for(int i = 0; i < _customplot->graphCount(); i++)
+    _customplot->graph(i)->clearData();
+  
+  _customplot->xAxis->setRange(0, spinXRange->value(), Qt::AlignLeft);
+  
+  _y_max = -1000000000;
+  _y_min =  1000000000;
+  
+  _customplot->replot();
+  
+}
+
+void svgawdg::SvGAPainter::on_bnYAutoscale_clicked(bool checked)
+{
+  if(checked)
+    on_bnYRangeActual_clicked();
+  
+  _params->y_autoscale = checked;
+  
+}
+
+void svgawdg::SvGAPainter::replot()
+{
+  _customplot->replot();
+}
+
+void svgawdg::SvGAPainter::drawLine(int lineNum, quint16 discret)
 {
   if(!_buffer) return;
   
   void* d;
   d = _buffer + lineNum * MAX_LINE_POINT_COUNT;
   
-  // угол 
-  qreal a = double(0.5 * M_PI) + _data_angle_step * double(lineNum);
+  QVector <double> x_data, y_data;
+  x_data.resize(_params->line_point_count);
+  y_data.resize(_params->line_point_count);
+  
   
   for(int i = 0; i < _params->line_point_count; i++)
   {
-    int x = _params->display_point_count / 2 - double(i * _params->display_point_count) / _params->line_point_count / 2 * cos(a);
-    int y = _params->display_point_count / 2 - double(i * _params->display_point_count) / _params->line_point_count / 2 * sin(a);
+    y_data[i] = double(i);
     
     quint8* v = (quint8*)(d + i);
+    
+    x_data[i] = double(*v) * pow(-1, i);
+    
+//    int x = _params->display_point_count / 2 - double(i * _params->display_point_count) / _params->line_point_count / 2 * cos(a);
+//    int y = _params->display_point_count / 2 - double(i * _params->display_point_count) / _params->line_point_count / 2 * sin(a);
+    
  
-    if(*v == 0) _img.setPixel(x, y, _params->painter_bkgnd_color.rgb());
-    else {
-      QColor color = _params->painter_data_color;
-      color.setAlpha(*v);
-      _img.setPixel(x, y, color.rgba());
-    }
+//    if(*v == 0) _img.setPixel(x, y, _params->painter_bkgnd_color.rgb());
+//    else {
+//      QColor color = _params->painter_data_color;
+//      color.setAlpha(*v);
+//      _img.setPixel(x, y, color.rgba());
+//    }
   }
   
-  /** индикатор **/
-  a = _indicator_angle_step * lineNum - 90;
+  _customplot->graph()->setData(y_data, x_data);
   
-  _indicator.setAngle(-a);
-  
-  /** Цена одного дискрета дальности в миллиметрах **/
-  _current_discret = discret;
-  
-  
-}
-
-
-void SvRlsPainter::paintEvent(QPaintEvent *event)
-{
-//  if(!_rls_thread->isPlaying()) return;
-
-  QPainter painter(this);
-  painter.drawImage(0, 0, _img);
-  
-  QPen pen(QColor::fromRgba(qRgba(255, 255, 150, 50)));
-  pen.setStyle(Qt::DashLine);
-  painter.setPen(pen);
-  
-  /* отображаемая дистанция */
-  qint64 dist = _params->line_point_count * _current_discret / 1000;
-  
-//  qreal i = step;
-
-  /* окружности */
-//  qreal lc = qreal(_params->grid_line_count) / 2;
-  qreal step =  _radius / _params->grid_line_count;
-  for(qreal i = 1; i <= _params->grid_line_count; i++) {
-    qreal p = i * step;
-    painter.drawEllipse(_radius - p, _radius - p, 2*p, 2*p);
-  }
-  
-  /* диагонали */
-  step =  2 * M_PI / _params->grid_line_count;
-  for(int i = 0; i < _params->grid_line_count/2; i++) {
-
-    qreal x = _radius * (1 - cos(i * step));
-    qreal y = _radius * (1 - sin(i * step));
-    
-    qreal x1 = _radius * (1 + cos(i * step));
-    qreal y1 = _radius * (1 + sin(i * step));
-    
-    painter.drawLine(_indicator_center, QPointF(x, y));
-    painter.drawLine(_indicator_center, QPointF(x1, y1));
-    
-//    if(x)
-//      painter.drawLine(QPointF(x, y), QPointF(x1, y));
-    
-//    if(y)
-//      painter.drawLine(QPointF(x, y), QPointF(x, y1));
-    
-  }
-  
-  /* сетка */
-//  step =  _params->display_point_count / _params->grid_line_count;
-//  for(int i = 0; i < _params->grid_line_count; i++) {
-//    qreal p = (i + 1) * step;
-//    painter.drawLine(QPointF(_indicator_center.x() - p, 0), QPointF(_indicator_center.x() - p, _params->display_point_count));
-//    painter.drawLine(QPointF(0, _indicator_center.y() - p), QPointF(_params->display_point_count, _indicator_center.y() - p));
-    
-//      painter.drawLine(QPointF(_indicator_center.x() + p, 0), QPointF(_indicator_center.x() + p, _params->display_point_count));
-//      painter.drawLine(QPointF(0, _indicator_center.y() + p), QPointF(_params->display_point_count, _indicator_center.y() + p));
-//  }
-
-
-  painter.fillRect(0, 0, _params->display_point_count, _params->display_point_count, _indicator);
-  
-  pen.setColor(QColor::fromRgba(qRgba(255, 255, 150, 255)));
-  pen.setStyle(Qt::SolidLine);
-  painter.setPen(pen);
-  
-  painter.drawText(10,20, QString("Радиус: %1 метров").arg(dist));
-  
-  painter.drawText(10, 40, QString("Шаг сетки: %1 метров").arg(dist / _params->grid_line_count));
-  painter.drawLine(10, 50, 10, 55);
-  painter.drawLine(10, 55, _radius / _params->grid_line_count, 55);
-  painter.drawLine(_radius / _params->grid_line_count, 55, _radius / _params->grid_line_count, 50);
+//  _customplot->replot();
   
 }

@@ -131,7 +131,7 @@ class SvRlsWidget: public QWidget
 public:
   explicit SvRlsWidget(void *buffer, SvRlsWidgetParams &params);
   
-  ~SvRlsWidget();
+  ~SvRlsWidget() { deleteLater(); }
   
   SvRlsPainter *painter() { return _rls_painter; }
   SvRlsWidgetParams params() { return _params; }
@@ -140,7 +140,8 @@ public slots:
   void startedUdp();
   void stoppedUdp();
   void startedArchive();
-  void stoppedArchive();  
+  void stoppedArchive();
+  void fileReaded(QString filename);
   
 signals:
   void start_stop_udp_clicked(quint32 ip, quint16 port);
