@@ -3,5 +3,6 @@ TEMPLATE = subdirs
 SUBDIRS += \
     RLS \
     RLS_archiver \
-    GA
+    GA \
+    GAEmulator
 

@@ -46,7 +46,7 @@
 
 #include "sv_graph.h"
 
-#include "sv_rls2bitthread.h"
+#include "sv_gathread.h"
 #include "../../Common/sv_settings.h"
 
 namespace svgawdg {
@@ -140,7 +140,7 @@ public:
 //    void clear() { _img.fill(_params->painter_bkgnd_color); }
     
 public slots:
-    void drawLine(int lineNum, quint16 discret);
+    void drawData(quint64 pointCount);
     
 private:
     void *_buffer = nullptr;

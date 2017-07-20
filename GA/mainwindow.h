@@ -5,11 +5,7 @@
 #include <QCommandLineParser>
 #include <QColor>
 
-//#include "sv_rlswidget.h"
 #include "sv_gawidget.h"
-
-
-#define PRLI_PORT 8000
 
 namespace Ui {
 class MainWindow;
@@ -28,8 +24,8 @@ private:
   
   svgawdg::SvGAWidget *_ga_widget;
   
-  SvRls2bitThread *_ga_udp_thread = nullptr;
-  SvRlsExtractThread *_ga_archive_thread = nullptr;
+  SvGAThread *_ga_udp_thread = nullptr;
+  SvGAExtractThread *_ga_archive_thread = nullptr;
   
   void *_buffer;
   

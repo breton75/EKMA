@@ -21,8 +21,8 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
 //  AppParams::readParam(this, "RLS", "Draw radius", MAX_LINE_SIZE).toInt();
 
   
-  _buffer = malloc(AZIMUTHS_COUNT * MAX_LINE_POINT_COUNT);
-  memset(_buffer, char(0), AZIMUTHS_COUNT * MAX_LINE_POINT_COUNT);
+  _buffer = malloc(MAX_LINE_POINT_COUNT * sizeof(float));
+  memset(_buffer, char(0), MAX_LINE_POINT_COUNT * sizeof(float));
   
   /**  разбираем параметры  **/
   svgawdg::SvGAWidgetParams p;
@@ -50,7 +50,7 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   
 //  p.radius = parser.isSet("radius") ? parser.value("radius").toUInt() : AppParams::readParam(this, "PARAMS", "radius", QVariant(600)).toUInt();
   p.display_point_count = parser.isSet("displaypc") ? parser.value("displaypc").toUInt() : AppParams::readParam(this, "PARAMS", "display_point_count", 640).toUInt();
-  p.line_point_count = parser.isSet("linepc") ? parser.value("linepc").toUInt() : AppParams::readParam(this, "PARAMS", "line_point_count", 1200).toUInt();
+  p.line_point_count = parser.isSet("linepc") ? parser.value("linepc").toUInt() : AppParams::readParam(this, "PARAMS", "line_point_count", 1000).toUInt();
   
   p.autostart = parser.isSet("autostart") ? true : AppParams::readParam(this, "PARAMS", "autostart", true).toBool();
   p.no_controls = parser.isSet("nocontrols") ? true : AppParams::readParam(this, "PARAMS", "nocontrols", false).toBool();
@@ -68,8 +68,8 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   gp.line_color = p.painter_data_color;
   gp.line_width = 2;
   _ga_widget->painter()->addGraph(0, gp);
-  _ga_widget->painter()->appendData(0, -500);
-  _ga_widget->painter()->appendData(0, 500);
+//  _ga_widget->painter()->appendData(0, -50000);
+//  _ga_widget->painter()->appendData(0, 50000);
     
   ui->vlayMain->addWidget(_ga_widget);
   
@@ -106,7 +106,7 @@ MainWindow::~MainWindow()
   svgawdg::SvGAWidgetParams p = _ga_widget->params();
   AppParams::saveParam(this, "PARAMS", "source", p.source);
   AppParams::saveParam(this, "PARAMS", "ip", p.ip);
-  AppParams::saveParam(this, "PARAMS", "port", p.port);
+  AppParams::saveParam(this, "PARAMS", "port", quint16(p.port));
   AppParams::saveParam(this, "PARAMS", "fromdate", p.fromdate);
   AppParams::saveParam(this, "PARAMS", "fromtime", p.fromtime);
   AppParams::saveParam(this, "PARAMS", "painter_bkgnd_color", p.painter_bkgnd_color.name());
@@ -133,9 +133,9 @@ void MainWindow::_start_stop_udp_thread(quint32 ip, quint16 port)
   }
   else {
     
-    _ga_udp_thread = new SvRls2bitThread(_buffer, ip, port, this);
+    _ga_udp_thread = new SvGAThread(_buffer, ip, port, this);
   //  connect(_chart_thread, QThread::finished, _chart_thread, &QObject::deleteLater);
-    connect(_ga_udp_thread, SIGNAL(lineUpdated(int, quint16)), _ga_widget->painter(), SLOT(drawLine(int, quint16)));
+    connect(_ga_udp_thread, SIGNAL(dataUpdated(quint64)), _ga_widget->painter(), SLOT(drawData(quint64)));
     
     _ga_udp_thread->start();
     
@@ -159,10 +159,10 @@ void MainWindow::_start_stop_archive_thread(QStringList *files)
   }
   else {
     
-    _ga_archive_thread = new SvRlsExtractThread(_buffer, files, this);
+    _ga_archive_thread = new SvGAExtractThread(_buffer, files, true, this);
   //  connect(_chart_thread, QThread::finished, _chart_thread, &QObject::deleteLater);
     
-    connect(_ga_archive_thread, SIGNAL(lineUpdated(int, quint16)), _ga_widget->painter(), SLOT(drawLine(int, quint16)));
+    connect(_ga_archive_thread, SIGNAL(dataUpdated()), _ga_widget->painter(), SLOT(drawData()));
     
     connect(_ga_archive_thread, SIGNAL(fileReaded(QString)), _ga_widget, SLOT(fileReaded(QString)));
     connect(_ga_archive_thread, SIGNAL(fileReadError(QString, QString)), this, SLOT(fileReadError(QString, QString)));

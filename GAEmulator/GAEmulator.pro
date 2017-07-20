@@ -1,14 +1,14 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2017-06-23T15:46:13
+# Project created by QtCreator 2017-07-20T09:37:06
 #
 #-------------------------------------------------
 
-QT       += core gui network printsupport
-#CONFIG += console
+QT       += core gui network
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = GA
+TARGET = GAEmulator
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -25,25 +25,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    ../../Common/sv_settings.cpp \
-    sv_graph.cpp \
-    ../../Common/qcustomplot/qcustomplot.cpp \
-    sv_gawidget.cpp \
-    ../general/sv_gathread.cpp
+    ../general/sv_gathread.cpp \
+    ../../svlib/sv_log.cpp
 
 HEADERS  += mainwindow.h \
-    ../../Common/sv_settings.h \
-    sv_graph.h \
-    ../../Common/qcustomplot/qcustomplot.h \
-    sv_gawidget.h \
-    ../general/sv_gathread.h
+    ../general/sv_gathread.h \
+    ../../svlib/sv_log.h
 
-FORMS    += mainwindow.ui \
-    sv_chartwidget.ui \
-    sv_graphparamsdialog.ui
-
-INCLUDEPATH += ../general
-INCLUDEPATH += ../../Common/qcustomplot
-
-RESOURCES += \
-    ../general/qq.qrc
+FORMS    += mainwindow.ui

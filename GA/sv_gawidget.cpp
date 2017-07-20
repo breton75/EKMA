@@ -26,7 +26,8 @@ svgawdg::SvGAWidget::SvGAWidget(void *buffer, svgawdg::SvGAWidgetParams &params)
   
   _cbDataSource->setCurrentIndex(_params.source);
   _editIp->setText(QHostAddress(_params.ip).toString());
-  _spinPort->setValue(_params.port);
+  
+  _spinPort->setValue(quint16(_params.port));
 //  _dateArchBegin->setDate(_params.fromdate);
 //  _timeArchBegin->setTime(_params.fromtime);
   _sliderLinePointCount->setValue(_params.line_point_count);
@@ -132,7 +133,7 @@ void svgawdg::SvGAWidget::_setupUI()
           _spinPort = new QSpinBox(_gbNetworkParams);
           _spinPort->setObjectName(QStringLiteral("_spinPort"));
           _spinPort->setMinimum(1);
-          _spinPort->setMaximum(32565);
+          _spinPort->setMaximum(65535);
           _spinPort->setValue(8001);
   
           _hlayPort->addWidget(_spinPort);
@@ -441,7 +442,7 @@ svgawdg::SvGAPainter::SvGAPainter(void *buffer, SvGAWidgetParams *params, QWidge
   
   on_bnResetChart_clicked();
   
-  _timer.setInterval(20);
+  _timer.setInterval(30);
   _timer.setSingleShot(false);
   connect(&_timer, SIGNAL(timeout()), this, SLOT(replot()));
   _timer.start();
@@ -626,9 +627,9 @@ void svgawdg::SvGAPainter::setupUi()
     
     vlayMain->addLayout(hlay2);
 
-    frameXRange->setVisible(false);
-    frameYRange->setVisible(false);
-    bnResetChart->setVisible(false);
+//    frameXRange->setVisible(false);
+//    frameYRange->setVisible(false);
+//    bnResetChart->setVisible(false);
 //    retranslateUi(this);
 
     QMetaObject::connectSlotsByName(this);
@@ -654,8 +655,8 @@ void svgawdg::SvGAPainter::addGraph(int graph_id, svgraph::GraphParams &graphPar
   _graphs.value(graph_id)->graph->setName(svgraph::GraphTypes.value(graph_id));
   
   
-  _graphs.value(graph_id)->graph->setLineStyle(QCPGraph::lsLine); //lsImpulse);lsLine // LeStyle 
-  _graphs.value(graph_id)->graph->setAntialiased(true);
+//  _graphs.value(graph_id)->graph->setLineStyle(QCPGraph::lsLine); //lsImpulse);lsLine // LeStyle 
+//  _graphs.value(graph_id)->graph->setAntialiased(true);
   
 }
 
@@ -790,39 +791,29 @@ void svgawdg::SvGAPainter::replot()
   _customplot->replot();
 }
 
-void svgawdg::SvGAPainter::drawLine(int lineNum, quint16 discret)
+void svgawdg::SvGAPainter::drawData(quint64 pointCount)
 {
   if(!_buffer) return;
   
-  void* d;
-  d = _buffer + lineNum * MAX_LINE_POINT_COUNT;
-  
   QVector <double> x_data, y_data;
-  x_data.resize(_params->line_point_count);
-  y_data.resize(_params->line_point_count);
+//  x_data.resize(pointCount); //  _params->line_point_count);
+//  y_data.resize(pointCount); //  _params->line_point_count);
+//  qDebug() << pointCount;
+//  x_data.data()
   
-  
-  for(int i = 0; i < _params->line_point_count; i++)
+  for(int i = 0; i < pointCount; i++)
   {
-    y_data[i] = double(i);
+    x_data.push_back(i);
     
-    quint8* v = (quint8*)(d + i);
+//    x_data[i] = i;
     
-    x_data[i] = double(*v) * pow(-1, i);
+    float* v = (float*)(_buffer) + i;
+    y_data.push_back(*v);
+//    y_data[i] = *v;
     
-//    int x = _params->display_point_count / 2 - double(i * _params->display_point_count) / _params->line_point_count / 2 * cos(a);
-//    int y = _params->display_point_count / 2 - double(i * _params->display_point_count) / _params->line_point_count / 2 * sin(a);
-    
- 
-//    if(*v == 0) _img.setPixel(x, y, _params->painter_bkgnd_color.rgb());
-//    else {
-//      QColor color = _params->painter_data_color;
-//      color.setAlpha(*v);
-//      _img.setPixel(x, y, color.rgba());
-//    }
   }
   
-  _customplot->graph()->setData(y_data, x_data);
+  _customplot->graph(0)->setData(x_data, y_data);
   
 //  _customplot->replot();
   
