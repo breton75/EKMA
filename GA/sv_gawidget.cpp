@@ -1,5 +1,7 @@
 #include "sv_gawidget.h"
 
+QList<int>Dividers = {1, 2, 3, 4, 6, 8, 12, 16, 24}; //, 48};
+
 svgawdg::SvGAWidget::SvGAWidget(void *buffer, svgawdg::SvGAWidgetParams &params)
 {
   _params = params;
@@ -35,11 +37,13 @@ svgawdg::SvGAWidget::SvGAWidget(void *buffer, svgawdg::SvGAWidgetParams &params)
   _cbPaintBkgndColor->setCurrentIndex(_cbPaintBkgndColor->findData(_params.painter_bkgnd_color, Qt::DecorationRole));
   _cbPaintDataColor->setCurrentIndex(_cbPaintDataColor->findData(_params.painter_data_color, Qt::DecorationRole));
    
+//  _ga_painter->setDataBufLength(_params.line_point_count);
   
 //  connect(_sliderLinePointCount, SIGNAL(valueChanged(int)), this, SLOT(setLinePointCount(int)));
   
   QMetaObject::connectSlotsByName(this);
   
+//  connect(_sliderLinePointCount, SIGNAL(valueChanged(int)), _ga_painter, SLOT(setDataBufLength(int)));
   
   on__cbDataSource_currentIndexChanged(_params.source);
   
@@ -206,26 +210,26 @@ void svgawdg::SvGAWidget::_setupUI()
           _vlayPaintParams->setObjectName(QStringLiteral("_vlayPaintParams"));
           _hlayLinePointCount = new QHBoxLayout();
           _hlayLinePointCount->setObjectName(QStringLiteral("_hlayLinePointCount"));
-          _labelLinePointCount = new QLabel(_gbPaintParams);
-          _labelLinePointCount->setObjectName(QStringLiteral("_labelLinePointCount"));
-          sizePolicy1.setHeightForWidth(_labelLinePointCount->sizePolicy().hasHeightForWidth());
-          _labelLinePointCount->setSizePolicy(sizePolicy1);
-          _labelLinePointCount->setMinimumSize(QSize(65, 0));
-          _labelLinePointCount->setMaximumSize(QSize(65, 16777215));
-          _labelLinePointCount->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+          _labelDivider = new QLabel(_gbPaintParams);
+          _labelDivider->setObjectName(QStringLiteral("_labelDivider"));
+          sizePolicy1.setHeightForWidth(_labelDivider->sizePolicy().hasHeightForWidth());
+          _labelDivider->setSizePolicy(sizePolicy1);
+          _labelDivider->setMinimumSize(QSize(65, 0));
+          _labelDivider->setMaximumSize(QSize(65, 16777215));
+          _labelDivider->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
   
-          _hlayLinePointCount->addWidget(_labelLinePointCount);
+          _hlayLinePointCount->addWidget(_labelDivider);
   
           _sliderLinePointCount = new QSlider(_gbPaintParams);
           _sliderLinePointCount->setObjectName(QStringLiteral("_sliderLinePointCount"));
-          _sliderLinePointCount->setMinimum(300);
-          _sliderLinePointCount->setMaximum(1200);
-          _sliderLinePointCount->setSingleStep(100);
-          _sliderLinePointCount->setPageStep(100);
-          _sliderLinePointCount->setValue(600);
+          _sliderLinePointCount->setMinimum(0);
+          _sliderLinePointCount->setMaximum(8);
+          _sliderLinePointCount->setSingleStep(1);
+          _sliderLinePointCount->setPageStep(1);
+          _sliderLinePointCount->setValue(8);
           _sliderLinePointCount->setOrientation(Qt::Horizontal);
           _sliderLinePointCount->setTickPosition(QSlider::TicksBelow);
-          _sliderLinePointCount->setTickInterval(100);
+          _sliderLinePointCount->setTickInterval(1);
   
           _hlayLinePointCount->addWidget(_sliderLinePointCount);
   
@@ -305,7 +309,7 @@ void svgawdg::SvGAWidget::_setupUI()
 //  _labelArchDateBegin->setText(QApplication::translate("Form", "\320\224\320\260\321\202\320\260", Q_NULLPTR));
 //  _labelArchTimeBegin->setText(QApplication::translate("Form", "\320\222\321\200\320\265\320\274\321\217", Q_NULLPTR));
   _gbPaintParams->setTitle(QApplication::translate("Form", "\320\236\321\202\320\276\320\261\321\200\320\260\320\266\320\265\320\275\320\270\320\265", Q_NULLPTR));
-  _labelLinePointCount->setText(QApplication::translate("Form", "\320\224\320\273\320\270\320\275\320\260 \320\273\321\203\321\207\320\260", Q_NULLPTR));
+  _labelDivider->setText(QApplication::translate("Form", "\320\224\320\265\320\273\320\270\321\202\320\265\320\273\321\214", Q_NULLPTR));
   _labelPaintBkgndColor->setText(QApplication::translate("Form", "\320\246\320\262\320\265\321\202 \321\204\320\276\320\275\320\260", Q_NULLPTR));
   _labelPaintDataColor->setText(QApplication::translate("Form", "\320\246\320\262\320\265\321\202 \320\237\320\240\320\233\320\230", Q_NULLPTR));
  
@@ -389,6 +393,9 @@ void svgawdg::SvGAWidget::startedUdp()
   _bnStartStopUDP->setEnabled(true);
   
   _cbDataSource->setEnabled(false);
+  _editIp->setEnabled(false);
+  _spinPort->setEnabled(false);
+  
 }
 
 void svgawdg::SvGAWidget::stoppedUdp()
@@ -398,6 +405,8 @@ void svgawdg::SvGAWidget::stoppedUdp()
    _bnStartStopUDP->setEnabled(true);
    
    _cbDataSource->setEnabled(true);
+   _editIp->setEnabled(true);
+   _spinPort->setEnabled(true);
 }
 
 void svgawdg::SvGAWidget::startedArchive()
@@ -442,10 +451,10 @@ svgawdg::SvGAPainter::SvGAPainter(void *buffer, SvGAWidgetParams *params, QWidge
   
   on_bnResetChart_clicked();
   
-  _timer.setInterval(30);
-  _timer.setSingleShot(false);
-  connect(&_timer, SIGNAL(timeout()), this, SLOT(replot()));
-  _timer.start();
+//  _timer.setInterval(30);
+//  _timer.setSingleShot(false);
+//  connect(&_timer, SIGNAL(timeout()), this, SLOT(replot()));
+//  _timer.start();
   
   _customplot->setBackground(QBrush(_params->painter_bkgnd_color));// StyleSheet("background-color: #FF0000");
   _customplot->xAxis->setTickLabelColor(_params->painter_data_color);
@@ -627,9 +636,9 @@ void svgawdg::SvGAPainter::setupUi()
     
     vlayMain->addLayout(hlay2);
 
-//    frameXRange->setVisible(false);
+    frameXRange->setVisible(false);
 //    frameYRange->setVisible(false);
-//    bnResetChart->setVisible(false);
+    bnResetChart->setVisible(false);
 //    retranslateUi(this);
 
     QMetaObject::connectSlotsByName(this);
@@ -791,30 +800,52 @@ void svgawdg::SvGAPainter::replot()
   _customplot->replot();
 }
 
-void svgawdg::SvGAPainter::drawData(quint64 pointCount)
+void svgawdg::SvGAPainter::setDataBufLength(int size)
+{
+  if(_customplot->graphCount() == 0) return;
+ 
+  int divider = Dividers[size];
+  int new_size = int(dataSampling / divider);
+  
+  x_data.resize(new_size);
+  y_data.resize(new_size);
+  
+  for(int i = 0; i < new_size; i++)
+    x_data[i] = i;
+  
+  _customplot->xAxis->setRangeUpper(new_size);
+  _customplot->graph(0)->setAdaptiveSampling(true);
+  _customplot->replot();
+  
+}
+
+void svgawdg::SvGAPainter::drawData(quint32 pointCount)
 {
   if(!_buffer) return;
   
-  QVector <double> x_data, y_data;
-//  x_data.resize(pointCount); //  _params->line_point_count);
-//  y_data.resize(pointCount); //  _params->line_point_count);
-//  qDebug() << pointCount;
-//  x_data.data()
+  quint64 datalen = pointCount * sizeof(double);
+  quint64 offset = y_data.size() * sizeof(double) - datalen;
   
-  for(int i = 0; i < pointCount; i++)
-  {
-    x_data.push_back(i);
-    
-//    x_data[i] = i;
-    
-    float* v = (float*)(_buffer) + i;
-    y_data.push_back(*v);
-//    y_data[i] = *v;
-    
+  void *d = (void*)(y_data.data());
+  memcpy(d, d + datalen, offset);
+  memcpy(d + offset, _buffer, datalen);
+  
+  
+  double y_max = _customplot->yAxis->range().upper;
+  double y_min = _customplot->yAxis->range().lower;
+  for(int i = 0; i < x_data.count(); i++ ) {
+    x_data[i] += pointCount;
+   
+    if(_params->y_autoscale) {
+      if(y_data[i] < y_min) y_min = y_data[i];
+      if(y_data[i] > y_max) y_max = y_data[i];
+    }
   }
   
-  _customplot->graph(0)->setData(x_data, y_data);
+  _customplot->xAxis->setRange(x_data.first(), x_data.last());
+  _customplot->yAxis->setRange(y_min, y_max);
   
-//  _customplot->replot();
+  _customplot->graph(0)->setData(x_data, y_data);
+  _customplot->replot();
   
 }

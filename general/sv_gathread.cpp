@@ -29,6 +29,8 @@ void SvGAThread::run()
   
   qint64 datagram_size;
   
+  HeaderFramePack header;
+  
   while(_playing)
   {
     /** Note: This function may fail randomly on Windows!!! **/
@@ -40,15 +42,21 @@ void SvGAThread::run()
 
         if(datagram_size <= 0 || datagram_size > 0xFFFF) continue;
         
-//        memset(_buffer, 0, dataSize);
-        socket->readDatagram((char*)(_buffer), datagram_size);
+        // читаем данные
+        socket->readDatagram((char*)(datagram), datagram_size);
         
-        emit dataUpdated(quint64(datagram_size / sizeof(float)));
-          
+        // заголовок
+        memcpy(&header, datagram, sizeof(HeaderFramePack));
+        
+        // данные        
+        memcpy(_buffer, datagram + sizeof(HeaderFramePack), datagram_size - sizeof(HeaderFramePack));
+        
+        emit dataUpdated(header.pointCount);
+        
       }
     }
   }
-  
+
   free(datagram);
   
   socket->close();
@@ -227,12 +235,12 @@ void SvGAExtractThread::run()
       file->seek(0);
       while(!file->atEnd() && _playing)
       {
-        memset(_buffer, 0, buferPointCount * sizeof(float));
-        file->read((char*)(_buffer), buferPointCount * sizeof(float));
+        memset(_buffer, 0, frameMaxPointCount * sizeof(double));
+        file->read((char*)(_buffer), frameMaxPointCount * sizeof(double));
         
         emit dataUpdated();
         
-        msleep(quint64(1000 / (dataSampling / buferPointCount) * sizeof(float)));
+        msleep(quint64(1000 / (dataSampling / frameMaxPointCount) * sizeof(float)));
         
       }
       
@@ -278,7 +286,14 @@ void SvGAFile2Udp::run()
   void* datagram = malloc(0xFFFF); // максимальный возможный размер датаграммы
   
   QFile* file = new QFile();
+  
+//  QFile* newfile = new QFile();
+  
   qint64 datagram_size;
+  
+  HeaderFramePack header;
+  header.frameSize = frameMaxPointCount;
+  header.sampling = dataSampling;
   
   _playing = true;
   while(_playing)
@@ -287,37 +302,65 @@ void SvGAFile2Udp::run()
     {
       
       file->setFileName(file_name);
+      
+//      QString newfilename = file_name;
+//      newfilename.replace(".pcm", ".pcmd");
+//      newfilename.replace("2016_", "_2016_");
+//      newfilename.replace("2017_", "_2017_");
+//      newfile->setFileName(newfilename);
+//      if(!newfile->open(QIODevice::WriteOnly)) {
+//        qDebug() << newfile->errorString();
+//        _playing = false;
+//        break;
+//      }
+      
       if(!file->open(QIODevice::ReadOnly))
       {
         emit fileReadError(file_name, file->errorString());
         _playing = false;
-  //        qDebug() << file->errorString();
         break;
       }
       
-//      qDebug() << file_name;
       emit fileReaded(file_name);
       
       /** формируем датаграмму **/
       file->seek(0);
       while(!file->atEnd() && _playing)
       {
-        // вычитываем заголовок
-        datagram_size = file->read((char*)(datagram), buferPointCount * sizeof(float));
+        /// читаем данные из файла. пытаемся прочитать максимум
+        datagram_size = file->read((char*)(datagram) + sizeof(HeaderFramePack), frameMaxPointCount * sizeof(double));
+
+        /// определяем, сколько точек было считано реально
+        header.pointCount = quint32(datagram_size / sizeof(double));
         
-        socket->writeDatagram((const char*)(datagram), datagram_size, QHostAddress(_ip), _port);
+        /// пишем заголовок датаграммы
+        memcpy(datagram, &header, sizeof(HeaderFramePack));
         
-        msleep(quint64(1000 / (dataSampling / buferPointCount) * sizeof(float) * 2));
+        /// выпинываем
+        socket->writeDatagram((const char*)(datagram), datagram_size + sizeof(HeaderFramePack), QHostAddress(_ip), _port);
+        
+        msleep(quint64(1000 / (dataSampling / header.pointCount)));
+        
+//        datagram_size = file->read((char*)(datagram), frameMaxPointCount * sizeof(float));
+//        int i = 0;
+//        while(i < datagram_size) {
+//          float *v = (float*)(datagram + i);
+//          double vd = *v;
+//          newfile->write((char*)(&vd), sizeof(double));
+//          i += sizeof(float);
+//        }
         
       }
       
       if(file->isOpen()) file->close();
+//      newfile->close();
       
       if(!_playing) break;
     
     }
     
     if(!_repeat) {
+//    if(true) {
       _playing = false;
       break;
     }

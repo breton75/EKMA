@@ -21,8 +21,8 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
 //  AppParams::readParam(this, "RLS", "Draw radius", MAX_LINE_SIZE).toInt();
 
   
-  _buffer = malloc(MAX_LINE_POINT_COUNT * sizeof(float));
-  memset(_buffer, char(0), MAX_LINE_POINT_COUNT * sizeof(float));
+  _buffer = malloc(MAX_LINE_POINT_COUNT * sizeof(double));
+  memset(_buffer, char(0), MAX_LINE_POINT_COUNT * sizeof(double));
   
   /**  разбираем параметры  **/
   svgawdg::SvGAWidgetParams p;
@@ -66,12 +66,16 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   
   svgraph::GraphParams gp;
   gp.line_color = p.painter_data_color;
-  gp.line_width = 2;
+  gp.line_width = 1;
   _ga_widget->painter()->addGraph(0, gp);
-//  _ga_widget->painter()->appendData(0, -50000);
-//  _ga_widget->painter()->appendData(0, 50000);
+  
+  // чтобы задать максимум и минимум
+  _ga_widget->painter()->appendData(0, -50000);
+  _ga_widget->painter()->appendData(0, 50000);
     
   ui->vlayMain->addWidget(_ga_widget);
+  
+  _ga_widget->painter()->setDataBufLength(p.line_point_count);
   
   connect(this, SIGNAL(thread_udp_started()), _ga_widget, SLOT(startedUdp()));
   connect(this, SIGNAL(thread_udp_stopped()), _ga_widget, SLOT(stoppedUdp()));
@@ -135,7 +139,7 @@ void MainWindow::_start_stop_udp_thread(quint32 ip, quint16 port)
     
     _ga_udp_thread = new SvGAThread(_buffer, ip, port, this);
   //  connect(_chart_thread, QThread::finished, _chart_thread, &QObject::deleteLater);
-    connect(_ga_udp_thread, SIGNAL(dataUpdated(quint64)), _ga_widget->painter(), SLOT(drawData(quint64)));
+    connect(_ga_udp_thread, SIGNAL(dataUpdated(quint32)), _ga_widget->painter(), SLOT(drawData(quint32)));
     
     _ga_udp_thread->start();
     

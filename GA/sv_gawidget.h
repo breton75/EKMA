@@ -140,7 +140,8 @@ public:
 //    void clear() { _img.fill(_params->painter_bkgnd_color); }
     
 public slots:
-    void drawData(quint64 pointCount);
+    void setDataBufLength(int size);
+    void drawData(quint32 pointCount);
     
 private:
     void *_buffer = nullptr;
@@ -153,6 +154,8 @@ private:
     
     qreal _y_max = -1000000000;
     qreal _y_min =  1000000000;
+    
+    QVector <double> x_data, y_data;
     
     /** виджеты **/
     void setupUi();
@@ -227,10 +230,9 @@ signals:
 private slots:
   void on__bnStartStopUDP_clicked();
   void on__bnStartStopArchive_clicked();
-  void on__sliderLinePointCount_valueChanged(int line_point_count) { 
-    _params.line_point_count = line_point_count;
-    _ga_painter->customplot()->xAxis->setRangeUpper(line_point_count);
-    _ga_painter->customplot()->replot();
+  void on__sliderLinePointCount_valueChanged(int seconds) { 
+    _params.line_point_count = seconds;
+    _ga_painter->setDataBufLength(_params.line_point_count);
   }
   
   void on__cbPaintBkgndColor_currentIndexChanged(int index) { 
@@ -295,7 +297,7 @@ private:
   QGroupBox *_gbPaintParams;
   QVBoxLayout *_vlayPaintParams;
   QHBoxLayout *_hlayLinePointCount;
-  QLabel *_labelLinePointCount;
+  QLabel *_labelDivider;
   QSlider *_sliderLinePointCount;
   QHBoxLayout *_hlayPaintBkgndColor;
   QLabel *_labelPaintBkgndColor;

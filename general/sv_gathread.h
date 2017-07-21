@@ -29,31 +29,18 @@ struct StandartRLS {
 };
 #pragma pack(pop)
 
-#define buferPointCount 1000
+#define frameMaxPointCount 2000 // помни макс. размер датаграммы! 0xFFFF
 #define dataSampling 48000
-
-#pragma pack(push,1)
-struct Header2bit {
-   quint8 dollarChar;  // символ '$' (0x24 = 36)
-      int latitude;    // широта места установки радара
-      int longitude;   // долгота места установки радара
-  quint32 reserved; 
-};
-#pragma pack(pop)
-
-#define Line2bitHeaderSize 18
-#pragma pack(push,1)
-struct Line2bit
-{
-  quint32 lineLen;  
-  quint32 lineNum;
-  quint16 discret;
-  quint64 lineDT;
-};
-#pragma pack(pop)
-
-
 #define MAX_LINE_POINT_COUNT 48000
+
+#pragma pack(push,1)
+struct HeaderFramePack {
+  quint32 pointCount;   // количество точек в датаграмме
+  quint32 frameSize;    // размер одного кадра
+  quint32 sampling;     // дискретизация
+};
+#pragma pack(pop)
+
 
 struct SvGAArchiverParams {
   QString ip = "127.0.0.1";
@@ -102,7 +89,7 @@ class SvGAThread : public QThread
     void run() Q_DECL_OVERRIDE;
     
   signals:
-    void dataUpdated(quint64 pointCount);
+    void dataUpdated(quint32 pointCount);
     
   public slots:
     void stop() { _playing = false; }
