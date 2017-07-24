@@ -25,25 +25,23 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    ../../Common/sv_settings.cpp \
     sv_graph.cpp \
-    ../../Common/qcustomplot/qcustomplot.cpp \
     sv_gawidget.cpp \
-    ../general/sv_gathread.cpp
+    ../general/sv_gathread.cpp \
+    ../general/qcustomplot.cpp \
+    ../../svlib/sv_settings.cpp
 
 HEADERS  += mainwindow.h \
-    ../../Common/sv_settings.h \
     sv_graph.h \
-    ../../Common/qcustomplot/qcustomplot.h \
     sv_gawidget.h \
-    ../general/sv_gathread.h
+    ../general/sv_gathread.h \
+    ../general/qcustomplot.h \
+    ../../svlib/sv_settings.h
 
 FORMS    += mainwindow.ui \
-    sv_chartwidget.ui \
     sv_graphparamsdialog.ui
 
 INCLUDEPATH += ../general
-INCLUDEPATH += ../../Common/qcustomplot
 
 RESOURCES += \
     ../general/qq.qrc

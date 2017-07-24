@@ -47,7 +47,7 @@
 #include "sv_graph.h"
 
 #include "sv_gathread.h"
-#include "../../Common/sv_settings.h"
+#include "../../svlib/sv_settings.h"
 
 namespace svgawdg {
   enum {
@@ -56,24 +56,21 @@ namespace svgawdg {
   };
 
   struct SvGAWidgetParams {
-    int source = -1;
+    int source = udp;
     qint32 ip = 0;
     qint16 port = 0;
-    QDate fromdate = QDate();
-    QTime fromtime = QTime();
-  //  int radius = -1;
     QColor painter_bkgnd_color = QColor();
     QColor painter_data_color = QColor();
     
     bool start_on_create = true;
     
     int display_point_count = 640;
-    int line_point_count = MAX_LINE_POINT_COUNT;
+    int buffer_point_count = MAX_BUFFER_POINT_COUNT;
     
     bool no_controls = false;
     bool autostart = true;
     
-    int grid_line_count = 12;
+//    int grid_line_count = 12;
     
     QString archive_path = "";
     
@@ -90,8 +87,7 @@ namespace svgawdg {
     svgraph::GraphParams params;
   };
   
-
- 
+  
   class SvGAPainter;
   class SvGAWidget;
   
@@ -140,7 +136,7 @@ public:
 //    void clear() { _img.fill(_params->painter_bkgnd_color); }
     
 public slots:
-    void setDataBufLength(int size);
+    void setBuffersXY(int bufsize);
     void drawData(quint32 pointCount);
     
 private:
@@ -230,10 +226,7 @@ signals:
 private slots:
   void on__bnStartStopUDP_clicked();
   void on__bnStartStopArchive_clicked();
-  void on__sliderLinePointCount_valueChanged(int seconds) { 
-    _params.line_point_count = seconds;
-    _ga_painter->setDataBufLength(_params.line_point_count);
-  }
+  void on__sliderLinePointCount_valueChanged(int val);
   
   void on__cbPaintBkgndColor_currentIndexChanged(int index) { 
     _params.painter_bkgnd_color = QColor(_cbPaintBkgndColor->itemText(index)); 
@@ -255,11 +248,6 @@ private:
   void *_buffer = nullptr;
   
   QString _caption;
-  qreal _angle_step;
-  qreal _current_angle = 0;
-  int _current_line_num = 0;
-  
-  int _draw_points_per_line;
 
   QStringList _arch_files = QStringList();
   
@@ -292,13 +280,13 @@ private:
   QHBoxLayout *_hlayCurrentArchiveFile;
   QLabel *_labelCurrentArchiveFile;
   QLineEdit *_editCurrentArchiveFile;
-  QCheckBox *_cbRepeatArchiveFiles;
+  QCheckBox *_checkRepeatArchiveFiles;
   QPushButton *_bnStartStopArchive;
   QGroupBox *_gbPaintParams;
   QVBoxLayout *_vlayPaintParams;
   QHBoxLayout *_hlayLinePointCount;
   QLabel *_labelDivider;
-  QSlider *_sliderLinePointCount;
+  QSlider *_sliderBufferPointCount;
   QHBoxLayout *_hlayPaintBkgndColor;
   QLabel *_labelPaintBkgndColor;
   QComboBox *_cbPaintBkgndColor;

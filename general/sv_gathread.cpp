@@ -1,6 +1,6 @@
 #include "sv_gathread.h"
 
-#include "../../Common/sv_fnt.h"
+#include "../../svlib/sv_fnt.h"
 
 /** *******  данные от РЛС  ************ **/
 SvGAThread::SvGAThread(void *buffer,
@@ -215,6 +215,8 @@ void SvGAExtractThread::run()
   
   QFile* file = new QFile();
   
+  qint64 datagram_size;
+  
   _playing = true;
   while(_playing)
   {
@@ -235,12 +237,15 @@ void SvGAExtractThread::run()
       file->seek(0);
       while(!file->atEnd() && _playing)
       {
-        memset(_buffer, 0, frameMaxPointCount * sizeof(double));
-        file->read((char*)(_buffer), frameMaxPointCount * sizeof(double));
+        /// читаем данные из файла. пытаемся прочитать максимум
+        datagram_size = file->read((char*)(_buffer), frameMaxPointCount * sizeof(double));
         
-        emit dataUpdated();
+        /// определяем, сколько точек было считано реально
+        quint32 pointCount = quint32(datagram_size / sizeof(double));
         
-        msleep(quint64(1000 / (dataSampling / frameMaxPointCount) * sizeof(float)));
+        emit dataUpdated(pointCount);
+        
+        msleep(quint64(1000 / (dataSampling / pointCount)));
         
       }
       

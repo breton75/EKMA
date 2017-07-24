@@ -4,5 +4,6 @@ SUBDIRS += \
     RLS \
     RLS_archiver \
     GA \
-    GAEmulator
+    GAEmulator \
+    GA_archiver
 

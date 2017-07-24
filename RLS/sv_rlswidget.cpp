@@ -187,11 +187,11 @@ void SvRlsWidget::_setupUI()
   
           _vlayArchParams->addLayout(_hlayCurrentArchiveFile);
   
-          _cbRepeatArchiveFiles = new QCheckBox(_gbArchParams);
-          _cbRepeatArchiveFiles->setObjectName(QStringLiteral("_cbRepeatArchiveFiles"));
-          _cbRepeatArchiveFiles->setChecked(true);
+          _checkRepeatArchiveFiles = new QCheckBox(_gbArchParams);
+          _checkRepeatArchiveFiles->setObjectName(QStringLiteral("_checkRepeatArchiveFiles"));
+          _checkRepeatArchiveFiles->setChecked(true);
   
-          _vlayArchParams->addWidget(_cbRepeatArchiveFiles);
+          _vlayArchParams->addWidget(_checkRepeatArchiveFiles);
   
           _bnStartStopArchive = new QPushButton(_gbArchParams);
           _bnStartStopArchive->setObjectName(QStringLiteral("_bnStartStopArchive"));
@@ -314,7 +314,7 @@ void SvRlsWidget::_setupUI()
  
   _bnSelectArchiveFiles->setText(QApplication::translate("Form", "\320\222\321\213\320\261\321\200\320\260\321\202\321\214 \321\204\320\260\320\271\320\273\321\213", Q_NULLPTR));
   _labelCurrentArchiveFile->setText(QApplication::translate("Form", "\320\242\320\265\320\272\321\203\321\211\320\270\320\271", Q_NULLPTR));
-  _cbRepeatArchiveFiles->setText(QApplication::translate("Form", "\320\237\320\276\320\262\321\202\320\276\321\200\321\217\321\202\321\214", Q_NULLPTR));
+  _checkRepeatArchiveFiles->setText(QApplication::translate("Form", "\320\237\320\276\320\262\321\202\320\276\321\200\321\217\321\202\321\214", Q_NULLPTR));
   _bnStartStopArchive->setText(QApplication::translate("Form", "\320\241\321\202\320\260\321\200\321\202", Q_NULLPTR));
   // retranslateUi
 
@@ -366,6 +366,9 @@ void SvRlsWidget::on__bnStartStopUDP_clicked()
   _params.port = _spinPort->value();
   
   _bnStartStopUDP->setEnabled(false);
+  _editIp->setEnabled(false);
+  _spinPort->setEnabled(false);
+  _cbDataSource->setEnabled(false);
   
   emit start_stop_udp_clicked(_params.ip, _params.port);
   
@@ -380,6 +383,9 @@ void SvRlsWidget::on__bnStartStopArchive_clicked()
   }
   
   _bnStartStopArchive->setEnabled(false);
+  _bnSelectArchiveFiles->setEnabled(false);
+  _cbDataSource->setEnabled(false);
+  _checkRepeatArchiveFiles->setEnabled(false);
   
   emit start_stop_archive_clicked(&_arch_files);
   
@@ -391,16 +397,17 @@ void SvRlsWidget::startedUdp()
   _bnStartStopUDP->setText("Стоп");  
   _bnStartStopUDP->setEnabled(true);
   
-  _cbDataSource->setEnabled(false);
 }
 
 void SvRlsWidget::stoppedUdp()
 {
    _bnStartStopUDP->setStyleSheet("");
    _bnStartStopUDP->setText("Старт");
-   _bnStartStopUDP->setEnabled(true);
    
+   _bnStartStopUDP->setEnabled(true);
    _cbDataSource->setEnabled(true);
+   _editIp->setEnabled(true);
+   _spinPort->setEnabled(true);
 }
 
 void SvRlsWidget::startedArchive()
@@ -409,16 +416,19 @@ void SvRlsWidget::startedArchive()
   _bnStartStopArchive->setText("Стоп");  
   _bnStartStopArchive->setEnabled(true);
   
-  _cbDataSource->setEnabled(false);
 }
 
 void SvRlsWidget::stoppedArchive()
 {
    _bnStartStopArchive->setStyleSheet("");
    _bnStartStopArchive->setText("Старт");
-   _bnStartStopArchive->setEnabled(true);
    
+   _bnStartStopArchive->setEnabled(true);
    _cbDataSource->setEnabled(true);
+   _bnSelectArchiveFiles->setEnabled(true);
+   _checkRepeatArchiveFiles->setEnabled(true);
+   
+   
 }
 
 void SvRlsWidget::fileReaded(QString filename)

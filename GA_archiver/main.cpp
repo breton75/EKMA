@@ -3,10 +3,9 @@
 #include "stdio.h"
 #include <QTextCodec>
 
-#include "../general/sv_rls2bitthread.h"
+#include "../general/sv_gathread.h"
 
-
-SvRlsArchiverParams params;
+SvGAArchiverParams params;
 
 void setParams(QCommandLineParser *parser);
 
@@ -30,7 +29,7 @@ int main(int argc, char *argv[])
   QCommandLineParser parser;
   parser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
   
-  parser.setApplicationDescription("\nАрхивация и ретрансляция информации от РЛС по протоколу UDP.");
+  parser.setApplicationDescription("\nАрхивация и ретрансляция гидроакустических данных по протоколу UDP.");
   
   const QCommandLineOption helpOption = parser.addHelpOption();
   const QCommandLineOption versionOption = parser.addVersionOption();
@@ -126,14 +125,13 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  
   setParams(&parser);
   
-  SvRlsArchiver *rls_archiver = nullptr;
+  SvGAArchiver *ga_archiver = nullptr;
   
   if(parser.isSet("start")) {
-    rls_archiver = new SvRlsArchiver(&params, 0);
-    rls_archiver->start();
+    ga_archiver = new SvGAArchiver(&params, 0);
+    ga_archiver->start();
   }
   
   qtout << QString("IP источника данных:\t").toUtf8() << params.ip << endl
@@ -146,45 +144,45 @@ int main(int argc, char *argv[])
         << QString("Общая длительность:\t").toUtf8() << params.total_duration.toString("hh:mm:ss")  << endl
         << QString("Формат даты\\времени:\t").toUtf8() << params.date_time_format  << endl   
         << QString("Шаблон имени файла:\t").toUtf8() << params.file_name_template  << endl << endl;
-  
+
   bool wait_cmd = true;
   QString cmd;
   while(wait_cmd) {
 
-    qtin >> cmd; // = qtin->readLine();
+    qtin >> cmd;
     
     if(cmd == "stop") {
-      rls_archiver->stop();
-      while(!rls_archiver->isFinished()) QCoreApplication::processEvents();
-      rls_archiver = nullptr;
+      ga_archiver->stop();
+      while(!ga_archiver->isFinished()) QCoreApplication::processEvents();
+      ga_archiver = nullptr;
       
       qtout << "Archiving stoppped" << endl;
                
     }
-    else if (cmd == "start" && !rls_archiver) {
-      if(!rls_archiver) {
+    else if (cmd == "start" && !ga_archiver) {
+      if(!ga_archiver) {
         
         qtout << "Starting archiving" << endl;
         
-        rls_archiver = new SvRlsArchiver(&params, 0);
-        rls_archiver->start();
+        ga_archiver = new SvGAArchiver(&params, 0);
+        ga_archiver->start();
       }
       
     }
     else if(cmd == "quit") {
       wait_cmd = false;
-      if(rls_archiver) {
-        rls_archiver->stop();
-        while(!rls_archiver->isFinished()) QCoreApplication::processEvents();
+      if(ga_archiver) {
+        ga_archiver->stop();
+        while(!ga_archiver->isFinished()) QCoreApplication::processEvents();
       }
     }
   }
     
   return a.exec();
   qtout << "Closing" << endl;
-  if(rls_archiver) {
-    rls_archiver->stop();
-    while(!rls_archiver->isFinished()) QCoreApplication::processEvents();
+  if(ga_archiver) {
+    ga_archiver->stop();
+    while(!ga_archiver->isFinished()) QCoreApplication::processEvents();
   }
   
 }

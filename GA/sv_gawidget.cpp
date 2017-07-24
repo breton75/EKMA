@@ -1,15 +1,32 @@
 #include "sv_gawidget.h"
 
-QList<int>Dividers = {1, 2, 3, 4, 6, 8, 12, 16, 24}; //, 48};
+QMap<int, int>BUFFERS = {{1, 48000}, {2, 24000}, {3, 16000}, 
+                          {4, 12000}, {5, 8000}, {6, 6000}, 
+                          {7, 4000}, {8, 3000}, {9, 2000}}; //, 48};
+
+
+//QStringList divstr = {"", };
 
 svgawdg::SvGAWidget::SvGAWidget(void *buffer, svgawdg::SvGAWidgetParams &params)
 {
   _params = params;
   _buffer = buffer;
   
-  resize(_params.display_point_count, _params.display_point_count);
+  
+//  resize(_params.display_point_count, _params.display_point_count);
   
   _setupUI();  
+  
+  svgraph::GraphParams gp;
+  gp.line_color = _params.painter_data_color;
+  gp.line_width = 1; //!!
+  painter()->addGraph(0, gp);
+  
+  // чтобы задать максимум и минимум
+  painter()->appendData(0, -50000);
+  painter()->appendData(0, 50000);
+  
+  painter()->setBuffersXY(_params.buffer_point_count);
   
   _cbDataSource->addItem("UDP", QVariant(svgawdg::udp));
   _cbDataSource->addItem("\320\220\321\200\321\205\320\270\320\262", QVariant(svgawdg::archive));
@@ -28,22 +45,12 @@ svgawdg::SvGAWidget::SvGAWidget(void *buffer, svgawdg::SvGAWidgetParams &params)
   
   _cbDataSource->setCurrentIndex(_params.source);
   _editIp->setText(QHostAddress(_params.ip).toString());
-  
   _spinPort->setValue(quint16(_params.port));
-//  _dateArchBegin->setDate(_params.fromdate);
-//  _timeArchBegin->setTime(_params.fromtime);
-  _sliderLinePointCount->setValue(_params.line_point_count);
-
+  _sliderBufferPointCount->setValue(BUFFERS.key(_params.buffer_point_count));
   _cbPaintBkgndColor->setCurrentIndex(_cbPaintBkgndColor->findData(_params.painter_bkgnd_color, Qt::DecorationRole));
   _cbPaintDataColor->setCurrentIndex(_cbPaintDataColor->findData(_params.painter_data_color, Qt::DecorationRole));
-   
-//  _ga_painter->setDataBufLength(_params.line_point_count);
-  
-//  connect(_sliderLinePointCount, SIGNAL(valueChanged(int)), this, SLOT(setLinePointCount(int)));
   
   QMetaObject::connectSlotsByName(this);
-  
-//  connect(_sliderLinePointCount, SIGNAL(valueChanged(int)), _ga_painter, SLOT(setDataBufLength(int)));
   
   on__cbDataSource_currentIndexChanged(_params.source);
   
@@ -188,11 +195,11 @@ void svgawdg::SvGAWidget::_setupUI()
   
           _vlayArchParams->addLayout(_hlayCurrentArchiveFile);
   
-          _cbRepeatArchiveFiles = new QCheckBox(_gbArchParams);
-          _cbRepeatArchiveFiles->setObjectName(QStringLiteral("_cbRepeatArchiveFiles"));
-          _cbRepeatArchiveFiles->setChecked(true);
+          _checkRepeatArchiveFiles = new QCheckBox(_gbArchParams);
+          _checkRepeatArchiveFiles->setObjectName(QStringLiteral("_checkRepeatArchiveFiles"));
+          _checkRepeatArchiveFiles->setChecked(true);
   
-          _vlayArchParams->addWidget(_cbRepeatArchiveFiles);
+          _vlayArchParams->addWidget(_checkRepeatArchiveFiles);
   
           _bnStartStopArchive = new QPushButton(_gbArchParams);
           _bnStartStopArchive->setObjectName(QStringLiteral("_bnStartStopArchive"));
@@ -220,18 +227,18 @@ void svgawdg::SvGAWidget::_setupUI()
   
           _hlayLinePointCount->addWidget(_labelDivider);
   
-          _sliderLinePointCount = new QSlider(_gbPaintParams);
-          _sliderLinePointCount->setObjectName(QStringLiteral("_sliderLinePointCount"));
-          _sliderLinePointCount->setMinimum(0);
-          _sliderLinePointCount->setMaximum(8);
-          _sliderLinePointCount->setSingleStep(1);
-          _sliderLinePointCount->setPageStep(1);
-          _sliderLinePointCount->setValue(8);
-          _sliderLinePointCount->setOrientation(Qt::Horizontal);
-          _sliderLinePointCount->setTickPosition(QSlider::TicksBelow);
-          _sliderLinePointCount->setTickInterval(1);
+          _sliderBufferPointCount = new QSlider(_gbPaintParams);
+          _sliderBufferPointCount->setObjectName(QStringLiteral("_sliderLinePointCount"));
+          _sliderBufferPointCount->setMinimum(1);
+          _sliderBufferPointCount->setMaximum(9);
+          _sliderBufferPointCount->setSingleStep(1);
+          _sliderBufferPointCount->setPageStep(1);
+          _sliderBufferPointCount->setValue(1);
+          _sliderBufferPointCount->setOrientation(Qt::Horizontal);
+          _sliderBufferPointCount->setTickPosition(QSlider::TicksBelow);
+          _sliderBufferPointCount->setTickInterval(1);
   
-          _hlayLinePointCount->addWidget(_sliderLinePointCount);
+          _hlayLinePointCount->addWidget(_sliderBufferPointCount);
   
   
           _vlayPaintParams->addLayout(_hlayLinePointCount);
@@ -294,10 +301,6 @@ void svgawdg::SvGAWidget::_setupUI()
   _labelDataSource->setText(QApplication::translate("Form", "\320\230\321\201\321\202.\320\264\320\260\320\275\321\213\321\205", Q_NULLPTR));
   
   _cbDataSource->clear();
-//  _cbDataSource->insertItems(0, QStringList()
-//   << QApplication::translate("Form", "\320\241\320\265\321\202\321\214", Q_NULLPTR)
-//   << QApplication::translate("Form", "\320\220\321\200\321\205\320\270\320\262", Q_NULLPTR)
-//  );
   
   _gbNetworkParams->setTitle(QApplication::translate("Form", "\320\235\320\260\321\201\321\202\321\200\320\276\320\271\320\272\320\270 \321\201\320\265\321\202\320\270", Q_NULLPTR));
   _labelIp->setText(QApplication::translate("Form", "\320\220\320\264\321\200\320\265\321\201", Q_NULLPTR));
@@ -306,8 +309,6 @@ void svgawdg::SvGAWidget::_setupUI()
   _labelPort->setText(QApplication::translate("Form", "\320\237\320\276\321\200\321\202", Q_NULLPTR));
   
   _gbArchParams->setTitle(QApplication::translate("Form", "\320\220\321\200\321\205\320\270\320\262", Q_NULLPTR));
-//  _labelArchDateBegin->setText(QApplication::translate("Form", "\320\224\320\260\321\202\320\260", Q_NULLPTR));
-//  _labelArchTimeBegin->setText(QApplication::translate("Form", "\320\222\321\200\320\265\320\274\321\217", Q_NULLPTR));
   _gbPaintParams->setTitle(QApplication::translate("Form", "\320\236\321\202\320\276\320\261\321\200\320\260\320\266\320\265\320\275\320\270\320\265", Q_NULLPTR));
   _labelDivider->setText(QApplication::translate("Form", "\320\224\320\265\320\273\320\270\321\202\320\265\320\273\321\214", Q_NULLPTR));
   _labelPaintBkgndColor->setText(QApplication::translate("Form", "\320\246\320\262\320\265\321\202 \321\204\320\276\320\275\320\260", Q_NULLPTR));
@@ -315,7 +316,7 @@ void svgawdg::SvGAWidget::_setupUI()
  
   _bnSelectArchiveFiles->setText(QApplication::translate("Form", "\320\222\321\213\320\261\321\200\320\260\321\202\321\214 \321\204\320\260\320\271\320\273\321\213", Q_NULLPTR));
   _labelCurrentArchiveFile->setText(QApplication::translate("Form", "\320\242\320\265\320\272\321\203\321\211\320\270\320\271", Q_NULLPTR));
-  _cbRepeatArchiveFiles->setText(QApplication::translate("Form", "\320\237\320\276\320\262\321\202\320\276\321\200\321\217\321\202\321\214", Q_NULLPTR));
+  _checkRepeatArchiveFiles->setText(QApplication::translate("Form", "\320\237\320\276\320\262\321\202\320\276\321\200\321\217\321\202\321\214", Q_NULLPTR));
   _bnStartStopArchive->setText(QApplication::translate("Form", "\320\241\321\202\320\260\321\200\321\202", Q_NULLPTR));
   // retranslateUi
 
@@ -344,7 +345,7 @@ void svgawdg::SvGAWidget::on__bnSelectArchiveFiles_clicked()
   if(!dir.exists())
     dir.setPath(QDir::currentPath());
   
-  _arch_files = QFileDialog::getOpenFileNames(this, tr("Выбрать файлы"), dir.path(), "Файлы архива bt2 (*.bt2);;Все файлы (*.*)");
+  _arch_files = QFileDialog::getOpenFileNames(this, tr("Выбрать файлы"), dir.path(), "Файлы архива ga (*.ga);;Все файлы (*.*)");
   
   qSort(_arch_files);
   
@@ -367,6 +368,9 @@ void svgawdg::SvGAWidget::on__bnStartStopUDP_clicked()
   _params.port = _spinPort->value();
   
   _bnStartStopUDP->setEnabled(false);
+  _editIp->setEnabled(false);
+  _spinPort->setEnabled(false);
+  _cbDataSource->setEnabled(false);
   
   emit start_stop_udp_clicked(_params.ip, _params.port);
   
@@ -381,6 +385,9 @@ void svgawdg::SvGAWidget::on__bnStartStopArchive_clicked()
   }
   
   _bnStartStopArchive->setEnabled(false);
+  _bnSelectArchiveFiles->setEnabled(false);
+  _cbDataSource->setEnabled(false);
+  _checkRepeatArchiveFiles->setEnabled(false);
   
   emit start_stop_archive_clicked(&_arch_files);
   
@@ -392,18 +399,14 @@ void svgawdg::SvGAWidget::startedUdp()
   _bnStartStopUDP->setText("Стоп");  
   _bnStartStopUDP->setEnabled(true);
   
-  _cbDataSource->setEnabled(false);
-  _editIp->setEnabled(false);
-  _spinPort->setEnabled(false);
-  
 }
 
 void svgawdg::SvGAWidget::stoppedUdp()
 {
    _bnStartStopUDP->setStyleSheet("");
    _bnStartStopUDP->setText("Старт");
-   _bnStartStopUDP->setEnabled(true);
    
+   _bnStartStopUDP->setEnabled(true);
    _cbDataSource->setEnabled(true);
    _editIp->setEnabled(true);
    _spinPort->setEnabled(true);
@@ -414,23 +417,28 @@ void svgawdg::SvGAWidget::startedArchive()
   _bnStartStopArchive->setStyleSheet("background-color: tomato");
   _bnStartStopArchive->setText("Стоп");  
   _bnStartStopArchive->setEnabled(true);
-  
-  _cbDataSource->setEnabled(false);
 }
 
 void svgawdg::SvGAWidget::stoppedArchive()
 {
    _bnStartStopArchive->setStyleSheet("");
    _bnStartStopArchive->setText("Старт");
-   _bnStartStopArchive->setEnabled(true);
    
+   _bnStartStopArchive->setEnabled(true);
    _cbDataSource->setEnabled(true);
+   _bnSelectArchiveFiles->setEnabled(true);
+   _checkRepeatArchiveFiles->setEnabled(true);
 }
 
 void svgawdg::SvGAWidget::fileReaded(QString filename)
 {
   QFileInfo fi(filename);
   _editCurrentArchiveFile->setText(fi.fileName());
+}
+
+void svgawdg::SvGAWidget::on__sliderLinePointCount_valueChanged(int val) { 
+  _params.buffer_point_count = BUFFERS.value(val);
+  _ga_painter->setBuffersXY(_params.buffer_point_count);
 }
 
 /** *************************************** **/
@@ -448,6 +456,8 @@ svgawdg::SvGAPainter::SvGAPainter(void *buffer, SvGAWidgetParams *params, QWidge
   
   spinXRange->setValue(_params->x_range);
   bnYAutoscale->setChecked(_params->y_autoscale);  
+  
+  resize(_params->display_point_count, _params->display_point_count);
   
   on_bnResetChart_clicked();
   
@@ -800,20 +810,17 @@ void svgawdg::SvGAPainter::replot()
   _customplot->replot();
 }
 
-void svgawdg::SvGAPainter::setDataBufLength(int size)
+void svgawdg::SvGAPainter::setBuffersXY(int bufsize)
 {
   if(_customplot->graphCount() == 0) return;
- 
-  int divider = Dividers[size];
-  int new_size = int(dataSampling / divider);
   
-  x_data.resize(new_size);
-  y_data.resize(new_size);
+  x_data.resize(bufsize);
+  y_data.resize(bufsize);
   
-  for(int i = 0; i < new_size; i++)
+  for(int i = 0; i < bufsize; i++)
     x_data[i] = i;
   
-  _customplot->xAxis->setRangeUpper(new_size);
+  _customplot->xAxis->setRangeUpper(bufsize);
   _customplot->graph(0)->setAdaptiveSampling(true);
   _customplot->replot();
   

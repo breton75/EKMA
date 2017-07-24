@@ -31,7 +31,7 @@ struct StandartRLS {
 
 #define frameMaxPointCount 2000 // помни макс. размер датаграммы! 0xFFFF
 #define dataSampling 48000
-#define MAX_LINE_POINT_COUNT 48000
+#define MAX_BUFFER_POINT_COUNT 48000
 
 #pragma pack(push,1)
 struct HeaderFramePack {
@@ -49,7 +49,7 @@ struct SvGAArchiverParams {
   int rotation_speed;
   
   QString path = "archive";
-  QString device_name = "rls";
+  QString device_name = "ga";
   QTime file_duration = QTime(1, 0, 0); // один час
   QTime total_duration = QTime(0, 0, 0);
   QString date_time_format = "ddMMyy_hhmmss";
@@ -172,7 +172,7 @@ class SvGAExtractThread : public QThread
     void run() Q_DECL_OVERRIDE;
     
   signals:
-    void dataUpdated();
+    void dataUpdated(quint32 pointCount);
     void fileReaded(QString filename);
     void fileReadError(QString filename, QString error);
     

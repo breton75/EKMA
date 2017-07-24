@@ -27,36 +27,38 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   /**  разбираем параметры  **/
   SvRlsWidgetParams p;
   
-  p.source = parser.isSet("source") ? (parser.value("source").toLower() == "archive" ? svrlswdg::archive : svrlswdg::udp)
-                                    :  AppParams::readParam(this, "PARAMS", "source", svrlswdg::udp).toInt();
+  /* если хоть один параметр задан в командной строке, то берем параметры из нее */
+  if(parser.optionNames().count() > 0) {
   
-  p.ip = parser.isSet("ip") ? parser.value("ip").toUInt()
-                            : AppParams::readParam(this, "PARAMS", "ip", QHostAddress("127.0.0.1").toIPv4Address()).toUInt();
+    p.source = parser.value("source").toLower() == "archive" ? svrlswdg::archive : svrlswdg::udp;                                      
+    p.ip = QHostAddress(parser.value("ip")).toIPv4Address();
+    p.port = parser.value("port").toUInt();
+    p.painter_bkgnd_color = QColor(parser.value("bcolor"));
+    p.painter_data_color = QColor(parser.value("dcolor"));
+    p.display_point_count = parser.value("display").toUInt();
+    p.line_point_count = parser.value("linepc").toUInt();
+    p.autostart = parser.isSet("autostart");
+    p.no_controls = parser.isSet("nocontrols");  
+    p.archive_path = parser.value("path");
+    
+  }
   
-  p.port = parser.isSet("port") ? parser.value("port").toUInt()
-                                : AppParams::readParam(this, "PARAMS", "port", 8001).toUInt();
+  /* иначе берем параметры из инишника */
+  else {  
+    
+    p.source = AppParams::readParam(this, "PARAMS", "source", svrlswdg::udp).toInt();
+    p.ip = AppParams::readParam(this, "PARAMS", "ip", QHostAddress("127.0.0.1").toIPv4Address()).toUInt();
+    p.port = AppParams::readParam(this, "PARAMS", "port", 8001).toUInt();
+    p.painter_bkgnd_color = QColor(AppParams::readParam(this, "PARAMS", "painter_bkgnd_color", "#000000").toString());
+    p.painter_data_color = QColor(AppParams::readParam(this, "PARAMS", "painter_data_color", "#FFFF00").toString());
+    p.display_point_count = AppParams::readParam(this, "PARAMS", "display_point_count", 640).toUInt();
+    p.line_point_count = AppParams::readParam(this, "PARAMS", "line_point_count", 1200).toUInt();
+    p.autostart = AppParams::readParam(this, "PARAMS", "autostart", true).toBool();
+    p.no_controls = AppParams::readParam(this, "PARAMS", "nocontrols", false).toBool();
+    p.archive_path = AppParams::readParam(this, "PARAMS", "archive_path", "archive").toString();
+    
+  }
   
-  p.fromdate = parser.isSet("fromdate") ? QDate::fromString(parser.value("fromdate"), "ddMMyyyy")
-                                        : AppParams::readParam(this, "PARAMS", "fromdate", QDate::currentDate()).toDate();
-  
-  p.fromtime = parser.isSet("fromtime") ? QTime::fromString(parser.value("fromtime"), "hhmmss")
-                                        : AppParams::readParam(this, "PARAMS", "fromtime", QTime::currentTime()).toTime();
-  
-  p.painter_bkgnd_color = parser.isSet("bcolor") ? QColor::fromRgb(parser.value("bcolor").toInt(nullptr, 16))
-                                                 : QColor(AppParams::readParam(this, "PARAMS", "painter_bkgnd_color", "#000000").toString()) ; //.toInt(nullptr, 16));
-  
-  p.painter_data_color = parser.isSet("dcolor") ? QColor::fromRgb(parser.value("dcolor").toInt(nullptr, 16))
-                                                : QColor(AppParams::readParam(this, "PARAMS", "painter_data_color", "#FFFF00").toString());
-  
-//  p.radius = parser.isSet("radius") ? parser.value("radius").toUInt() : AppParams::readParam(this, "PARAMS", "radius", QVariant(600)).toUInt();
-  p.display_point_count = parser.isSet("displaypc") ? parser.value("displaypc").toUInt() : AppParams::readParam(this, "PARAMS", "display_point_count", 640).toUInt();
-  p.line_point_count = parser.isSet("linepc") ? parser.value("linepc").toUInt() : AppParams::readParam(this, "PARAMS", "line_point_count", 1200).toUInt();
-  
-  p.autostart = parser.isSet("autostart") ? true : AppParams::readParam(this, "PARAMS", "autostart", true).toBool();
-  p.no_controls = parser.isSet("nocontrols") ? true : AppParams::readParam(this, "PARAMS", "nocontrols", false).toBool();
-
-  p.archive_path = parser.isSet("archive_path") ? parser.value("archive_path")
-                                      : AppParams::readParam(this, "PARAMS", "archive_path", "archive").toString();
   
   _rls_widget = new SvRlsWidget(_buffer, p);
   _rls_widget->setParent(this);
@@ -73,8 +75,6 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
 
   if(p.autostart && (p.source == svrlswdg::udp))
     _start_stop_udp_thread(p.ip, p.port);
-    
-  
   
 } 
 

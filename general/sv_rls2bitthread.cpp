@@ -1,6 +1,6 @@
 #include "sv_rls2bitthread.h"
 
-#include "../../Common/sv_fnt.h"
+#include "../../svlib/sv_fnt.h"
 
 /** *******  данные от РЛС  ************ **/
 SvRls2bitThread::SvRls2bitThread(void *buffer,

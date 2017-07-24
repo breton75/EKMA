@@ -40,7 +40,7 @@
 #include <QtWidgets/QWidget>
 
 #include "sv_rls2bitthread.h"
-#include "../../Common/sv_settings.h"
+#include "../../svlib/sv_settings.h"
 
 namespace svrlswdg {
 
@@ -202,7 +202,7 @@ private:
   QHBoxLayout *_hlayCurrentArchiveFile;
   QLabel *_labelCurrentArchiveFile;
   QLineEdit *_editCurrentArchiveFile;
-  QCheckBox *_cbRepeatArchiveFiles;
+  QCheckBox *_checkRepeatArchiveFiles;
   QPushButton *_bnStartStopArchive;
   QGroupBox *_gbPaintParams;
   QVBoxLayout *_vlayPaintParams;
