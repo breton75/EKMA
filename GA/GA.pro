@@ -10,6 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = GA
 TEMPLATE = app
+CONFIG += c++11
 
 VERSION = 1.0.0    # major.minor.patch
 
