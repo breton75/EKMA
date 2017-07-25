@@ -9,6 +9,8 @@ CONFIG -= app_bundle
 
 TEMPLATE = app
 
+VERSION = 1.0.0    # major.minor.patch
+
 SOURCES += main.cpp \
     ../general/sv_rls2bitthread.cpp
 

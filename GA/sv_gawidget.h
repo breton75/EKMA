@@ -109,6 +109,10 @@ public:
     void setMaxMinY(qreal y) { if(y > _y_max) _y_max = y * 1.01; 
                                if(y < _y_min) _y_min = y * 1.01; }
     
+    void setYRange(qreal lower, qreal upper) { _y_max = upper; _y_min = lower;
+                                               _customplot->yAxis->setRange(lower, upper); }
+   
+    
     void addGraph(int graph_id, svgraph::GraphParams &graphParams);
     
     void removeGraph(int graph_id);

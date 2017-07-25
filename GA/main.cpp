@@ -43,14 +43,15 @@ int main(int argc, char *argv[])
                              "#000000");
 
   clo << QCommandLineOption (QStringList() << "dc" << "dcolor",
-                             QCoreApplication::translate("main", "Цвет данных на дисплее."),
-                             "#FFFF96",
-                             "#FFFF96");  
+                             QCoreApplication::translate("main", "Цвет данных на дисплее. По умолчанию #FFFF00"),
+                             "#FFFF00",
+                             "#FFFF00");  
   
   clo << QCommandLineOption (QStringList() << "display" << "display_point_count",
                              QCoreApplication::translate("main", "Размер дисплея в точках. По умолчанию 640x640"),
                              "640",
                              "640");  
+  clo.last().setFlags(QCommandLineOption::HiddenFromHelp);
   
   clo << QCommandLineOption (QStringList() << "buffer" << "buffer_point_count",
                              QCoreApplication::translate("main", "Размер буфера отображения в точках. Возможные значения 48000, 24000, 16000, 12000, 8000, 6000, 4000, 2000. По умолчанию 48000"),
@@ -63,6 +64,7 @@ int main(int argc, char *argv[])
   
   clo << QCommandLineOption ("autoscale",
                              QCoreApplication::translate("main", "Автомасштаб по оси y."));  
+  
   clo << QCommandLineOption ("nocontrols",
                              QCoreApplication::translate("main", "Не отображать элементы управления."));  
   

@@ -102,6 +102,8 @@ void SvGAArchiver::run()
   fileTimeWatcher = totalTimeWatcher;
   
   qint64 datagram_size;
+
+  HeaderFramePack header;
   
   /* для формирования имени файла */
   svfnt::SvRE re;
@@ -173,9 +175,16 @@ void SvGAArchiver::run()
 
         if(datagram_size <= 0) continue;
   
+        // читаем данные
         _socket->readDatagram((char*)(datagram), datagram_size);
         
-        _out->writeRawData((char*)(datagram), datagram_size);
+        // вычитываем заголовок
+//        memcpy(&header, datagram, sizeof(HeaderFramePack));
+        
+        // пишем данные в файл, исключая заголовок
+        _out->writeRawData((char*)(datagram + sizeof(HeaderFramePack)), datagram_size - sizeof(HeaderFramePack));
+        
+        // ретрансляция
         _socket_out->writeDatagram((char*)(datagram), datagram_size, QHostAddress(_params->out_ip), _params->out_port);
         
       }
@@ -245,7 +254,7 @@ void SvGAExtractThread::run()
         
         emit dataUpdated(pointCount);
         
-        msleep(quint64(1000 / (dataSampling / pointCount)));
+        msleep(quint64(1000 / (dataSampling / pointCount)) * 2);
         
       }
       
@@ -344,7 +353,7 @@ void SvGAFile2Udp::run()
         /// выпинываем
         socket->writeDatagram((const char*)(datagram), datagram_size + sizeof(HeaderFramePack), QHostAddress(_ip), _port);
         
-        msleep(quint64(1000 / (dataSampling / header.pointCount)));
+        msleep(quint64(1000 / (dataSampling / header.pointCount)) * 2);
         
 //        datagram_size = file->read((char*)(datagram), frameMaxPointCount * sizeof(float));
 //        int i = 0;

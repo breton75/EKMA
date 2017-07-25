@@ -288,7 +288,7 @@ void SvRlsExtractThread::run()
   void* line_data;
 
   /* подобрано эмпирическим путем */
-  quint64 rotation_speed = 10 * 1000000 / AZIMUTHS_COUNT;
+  quint64 rotation_speed = 100 * 1000000 / AZIMUTHS_COUNT;
   
   QFile* file = new QFile();
   

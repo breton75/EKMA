@@ -1,6 +1,6 @@
 #include "sv_gawidget.h"
 
-QMap<int, int>BUFFERS = {{1, 48000}, {2, 24000}, {3, 16000}, 
+QMap<int, int>BUFFERS = {{0, 96000}, {1, 48000}, {2, 24000}, {3, 16000}, 
                           {4, 12000}, {5, 8000}, {6, 6000}, 
                           {7, 4000}, {8, 3000}, {9, 2000}}; //, 48};
 
@@ -23,8 +23,10 @@ svgawdg::SvGAWidget::SvGAWidget(void *buffer, svgawdg::SvGAWidgetParams &params)
   painter()->addGraph(0, gp);
   
   // чтобы задать максимум и минимум
-  painter()->appendData(0, -50000);
-  painter()->appendData(0, 50000);
+//  painter()->appendData(0, -2500000);
+//  painter()->appendData(0, 2500000);
+
+  painter()->setYRange(-2500000.0, 2500000.0);
   
   painter()->setBuffersXY(_params.buffer_point_count);
   
@@ -229,7 +231,7 @@ void svgawdg::SvGAWidget::_setupUI()
   
           _sliderBufferPointCount = new QSlider(_gbPaintParams);
           _sliderBufferPointCount->setObjectName(QStringLiteral("_sliderLinePointCount"));
-          _sliderBufferPointCount->setMinimum(1);
+          _sliderBufferPointCount->setMinimum(0);
           _sliderBufferPointCount->setMaximum(9);
           _sliderBufferPointCount->setSingleStep(1);
           _sliderBufferPointCount->setPageStep(1);
@@ -469,6 +471,10 @@ svgawdg::SvGAPainter::SvGAPainter(void *buffer, SvGAWidgetParams *params, QWidge
   _customplot->setBackground(QBrush(_params->painter_bkgnd_color));// StyleSheet("background-color: #FF0000");
   _customplot->xAxis->setTickLabelColor(_params->painter_data_color);
   _customplot->yAxis->setTickLabelColor(_params->painter_data_color);
+  _customplot->yAxis->setLabel("Уровень сигнала");
+  _customplot->yAxis->setLabelColor(_params->painter_data_color);
+  _customplot->xAxis->setLabel("Время, мсек.");  
+  _customplot->xAxis->setLabelColor(_params->painter_data_color);
   
 }
 
@@ -759,15 +765,15 @@ void svgawdg::SvGAPainter::on_bnXSetRange_clicked()
 
 void svgawdg::SvGAPainter::on_bnYRangeUp_clicked()
 {
-  _customplot->yAxis->setRangeUpper(_customplot->yAxis->range().upper * 1.25);
-  _customplot->yAxis->setRangeLower(_customplot->yAxis->range().lower * 1.25);
+  _customplot->yAxis->setRangeUpper(_customplot->yAxis->range().upper * 0.75);
+  _customplot->yAxis->setRangeLower(_customplot->yAxis->range().lower * 0.75);
   _customplot->replot(QCustomPlot::rpQueued);
 }
 
 void svgawdg::SvGAPainter::on_bnYRangeDown_clicked()
 {
-  _customplot->yAxis->setRangeUpper(_customplot->yAxis->range().upper * 0.75);
-  _customplot->yAxis->setRangeLower(_customplot->yAxis->range().lower * 0.75);
+  _customplot->yAxis->setRangeUpper(_customplot->yAxis->range().upper * 1.25);
+  _customplot->yAxis->setRangeLower(_customplot->yAxis->range().lower * 1.25);
   _customplot->replot(QCustomPlot::rpQueued);
 }
 
@@ -821,6 +827,7 @@ void svgawdg::SvGAPainter::setBuffersXY(int bufsize)
     x_data[i] = i;
   
   _customplot->xAxis->setRangeUpper(bufsize);
+  
   _customplot->graph(0)->setAdaptiveSampling(true);
   _customplot->replot();
   
@@ -843,14 +850,15 @@ void svgawdg::SvGAPainter::drawData(quint32 pointCount)
   for(int i = 0; i < x_data.count(); i++ ) {
     x_data[i] += pointCount;
    
-    if(_params->y_autoscale) {
-      if(y_data[i] < y_min) y_min = y_data[i];
-      if(y_data[i] > y_max) y_max = y_data[i];
-    }
+    if(y_data[i] < y_min) y_min = y_data[i];
+    if(y_data[i] > y_max) y_max = y_data[i];
   }
   
   _customplot->xAxis->setRange(x_data.first(), x_data.last());
-  _customplot->yAxis->setRange(y_min, y_max);
+  
+  if(_params->y_autoscale)
+    setYRange(y_min, y_max);
+    
   
   _customplot->graph(0)->setData(x_data, y_data);
   _customplot->replot();
