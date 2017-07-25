@@ -399,8 +399,11 @@ void svgawdg::SvGAWidget::startedUdp()
 {
   _bnStartStopUDP->setStyleSheet("background-color: tomato");
   _bnStartStopUDP->setText("Стоп");  
-  _bnStartStopUDP->setEnabled(true);
   
+  _bnStartStopUDP->setEnabled(true);
+  _editIp->setEnabled(false);
+  _spinPort->setEnabled(false);
+  _cbDataSource->setEnabled(false);
 }
 
 void svgawdg::SvGAWidget::stoppedUdp()
@@ -417,8 +420,12 @@ void svgawdg::SvGAWidget::stoppedUdp()
 void svgawdg::SvGAWidget::startedArchive()
 {
   _bnStartStopArchive->setStyleSheet("background-color: tomato");
-  _bnStartStopArchive->setText("Стоп");  
+  _bnStartStopArchive->setText("Стоп"); 
+  
   _bnStartStopArchive->setEnabled(true);
+  _bnSelectArchiveFiles->setEnabled(false);
+  _cbDataSource->setEnabled(false);
+  _checkRepeatArchiveFiles->setEnabled(false);
 }
 
 void svgawdg::SvGAWidget::stoppedArchive()

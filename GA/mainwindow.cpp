@@ -49,7 +49,7 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
     p.painter_data_color = QColor(AppParams::readParam(this, "PARAMS", "painter_data_color", "#FFFF00").toString());
     p.display_point_count = AppParams::readParam(this, "PARAMS", "display_point_count", 640).toUInt();
     p.buffer_point_count = AppParams::readParam(this, "PARAMS", "buffer_point_count", 48000).toUInt();
-    p.autostart = AppParams::readParam(this, "PARAMS", "autostart", true).toBool();
+    p.autostart = AppParams::readParam(this, "PARAMS", "autostart", false).toBool();
     p.no_controls = AppParams::readParam(this, "PARAMS", "nocontrols", false).toBool();
     AppParams::readParam(this, "PARAMS", "y_autoscale", true).toBool();
     
