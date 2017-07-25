@@ -66,7 +66,7 @@ void MainWindow::fileReadError(QString filename, QString error)
 
 void MainWindow::on_bnSelectFiles_clicked()
 {
-  QDir dir("D:/pcm/30122016/pcm"); // QDir::currentPath());
+  QDir dir("./pcmd"); // QDir::currentPath());
   
   _files = QFileDialog::getOpenFileNames(this, tr("Выбрать файлы"), dir.path(), "Файлы pcmd (*.pcmd);;Все файлы (*.*)");
   
