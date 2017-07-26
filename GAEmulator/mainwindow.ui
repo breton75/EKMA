@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Имитатор гидроакустических сигналов</string>
+   <string>Эмулятор гидроакустических сигналов</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -91,7 +91,7 @@
              <number>65535</number>
             </property>
             <property name="value">
-             <number>35580</number>
+             <number>9000</number>
             </property>
            </widget>
           </item>

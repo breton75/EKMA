@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
   
   SvGAArchiver *ga_archiver = nullptr;
   
-  if(parser.isSet("start")) {
+  if(parser.isSet("autostart")) {
     ga_archiver = new SvGAArchiver(&params, 0);
     ga_archiver->start();
   }

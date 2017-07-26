@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
 
   clo << QCommandLineOption (QStringList() << "dc" << "dcolor",
                              QCoreApplication::translate("main", "Цвет данных на дисплее."),
-                             "#FFFF96",
-                             "#FFFF96");  
+                             "#FFFF00",
+                             "#FFFF00");  
   
   clo << QCommandLineOption ("autostart",
                              QCoreApplication::translate("main", "Автоматический запуск отображения при запуске."));  
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
                              "640",
                              "640");  
   
-  clo << QCommandLineOption (QStringList() << "linepc" << "line_point_count",
+  clo << QCommandLineOption (QStringList() << "line" << "line_point_count",
                              QCoreApplication::translate("main", "Количество точек линейки данных РЛС, выводимых на дисплей. Каждая динейка данных соответствует одному лучу. РЛС может передавать максимум 1460 точек на один луч."),
                              "1200",
                              "1200");  

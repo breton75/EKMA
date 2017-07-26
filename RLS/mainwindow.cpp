@@ -36,7 +36,7 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
     p.painter_bkgnd_color = QColor(parser.value("bcolor"));
     p.painter_data_color = QColor(parser.value("dcolor"));
     p.display_point_count = parser.value("display").toUInt();
-    p.line_point_count = parser.value("linepc").toUInt();
+    p.line_point_count = parser.value("line").toUInt();
     p.autostart = parser.isSet("autostart");
     p.no_controls = parser.isSet("nocontrols");  
     p.archive_path = parser.value("path");
@@ -53,7 +53,7 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
     p.painter_data_color = QColor(AppParams::readParam(this, "PARAMS", "painter_data_color", "#FFFF00").toString());
     p.display_point_count = AppParams::readParam(this, "PARAMS", "display_point_count", 640).toUInt();
     p.line_point_count = AppParams::readParam(this, "PARAMS", "line_point_count", 1200).toUInt();
-    p.autostart = AppParams::readParam(this, "PARAMS", "autostart", true).toBool();
+    p.autostart = AppParams::readParam(this, "PARAMS", "autostart", false).toBool();
     p.no_controls = AppParams::readParam(this, "PARAMS", "nocontrols", false).toBool();
     p.archive_path = AppParams::readParam(this, "PARAMS", "archive_path", "archive").toString();
     
@@ -103,7 +103,6 @@ MainWindow::~MainWindow()
   AppParams::saveParam(this, "PARAMS", "painter_data_color",  p.painter_data_color.name());
   AppParams::saveParam(this, "PARAMS", "display_point_count", p.display_point_count);
   AppParams::saveParam(this, "PARAMS", "line_point_count", p.line_point_count);
-  AppParams::saveParam(this, "PARAMS", "autostart", p.autostart);
   
   delete ui;
 }

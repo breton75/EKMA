@@ -46,7 +46,7 @@ SvRlsWidget::SvRlsWidget(void *buffer, SvRlsWidgetParams &params)
   
   on__cbDataSource_currentIndexChanged(_params.source);
   
-  _gbParams->setVisible(!_params.no_controls);
+  _gbParams->setVisible((_params.source == svrlswdg::archive) || !_params.no_controls);
   
 }
 
@@ -395,8 +395,11 @@ void SvRlsWidget::startedUdp()
 {
   _bnStartStopUDP->setStyleSheet("background-color: tomato");
   _bnStartStopUDP->setText("Стоп");  
-  _bnStartStopUDP->setEnabled(true);
   
+  _bnStartStopUDP->setEnabled(true);
+  _cbDataSource->setEnabled(false);
+  _editIp->setEnabled(false);
+  _spinPort->setEnabled(false);
 }
 
 void SvRlsWidget::stoppedUdp()
@@ -413,9 +416,12 @@ void SvRlsWidget::stoppedUdp()
 void SvRlsWidget::startedArchive()
 {
   _bnStartStopArchive->setStyleSheet("background-color: tomato");
-  _bnStartStopArchive->setText("Стоп");  
-  _bnStartStopArchive->setEnabled(true);
+  _bnStartStopArchive->setText("Стоп"); 
   
+  _bnStartStopArchive->setEnabled(true);
+  _cbDataSource->setEnabled(false);
+  _bnSelectArchiveFiles->setEnabled(false);
+  _checkRepeatArchiveFiles->setEnabled(false);
 }
 
 void SvRlsWidget::stoppedArchive()

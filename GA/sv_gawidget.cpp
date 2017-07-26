@@ -56,7 +56,7 @@ svgawdg::SvGAWidget::SvGAWidget(void *buffer, svgawdg::SvGAWidgetParams &params)
   
   on__cbDataSource_currentIndexChanged(_params.source);
   
-  _gbParams->setVisible(!_params.no_controls);
+  _gbParams->setVisible((_params.source == svgawdg::archive) || !_params.no_controls);
   
 }
 

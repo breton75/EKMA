@@ -9,6 +9,19 @@ MainWindow::MainWindow(QWidget *parent) :
 {
   ui->setupUi(this);
   
+  /* параметры главного окна */
+  AppParams::WindowParams window_params = AppParams::readWindowParams(this);
+  this->resize(window_params.size);
+  this->move(window_params.position);
+  this->setWindowState(window_params.state);
+  
+  /* параметры программы */
+  ui->editIp->setText(AppParams::readParam(this, "PARAMS", "ip", "127.0.0.1").toString());
+  ui->spinPort->setValue(AppParams::readParam(this, "PARAMS", "port", 9000).toUInt());
+  _dir.setPath(AppParams::readParam(this, "PARAMS", "archive_path", "./pcmd").toString());
+  ui->checkCycle->setChecked(AppParams::readParam(this, "PARAMS", "cycle", true).toBool()); 
+  
+  
   log = SvLog(ui->textEdit, this);
  
   connect(this, SIGNAL(thread_udp_started(bool)), this, SLOT(_start_stop_udp_thread(bool)));
@@ -21,6 +34,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+  /* сохраняем парметры программы */
+  AppParams::saveWindowParams(this, this->size(), this->pos(), this->windowState());
+  
+  AppParams::saveParam(this, "PARAMS", "ip", ui->editIp->text());
+  AppParams::saveParam(this, "PARAMS", "port", ui->spinPort->value());
+  AppParams::saveParam(this, "PARAMS", "archive_path", _dir.path());
+  AppParams::saveParam(this, "PARAMS", "cycle", ui->checkCycle->isChecked());
+  
   delete ui;
 }
 
@@ -66,13 +87,17 @@ void MainWindow::fileReadError(QString filename, QString error)
 
 void MainWindow::on_bnSelectFiles_clicked()
 {
-  QDir dir("./pcmd"); // QDir::currentPath());
+  _files = QFileDialog::getOpenFileNames(this, tr("Выбрать файлы"), _dir.path(), "Файлы pcmd (*.pcmd);;Все файлы (*.*)");
   
-  _files = QFileDialog::getOpenFileNames(this, tr("Выбрать файлы"), dir.path(), "Файлы pcmd (*.pcmd);;Все файлы (*.*)");
+  if(_files.count()) {
+    QFileInfo fi(_files.first());
+    _dir.setPath(fi.filePath());
+  }
   
   qSort(_files);
 
   ui->textEdit_2->clear();
+  
   for(QString file_name: _files) {
     QFileInfo fi(file_name);
     ui->textEdit_2->append(fi.fileName());

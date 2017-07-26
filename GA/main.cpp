@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
   
   clo << QCommandLineOption (QStringList() << "p" << "port",
                              QCoreApplication::translate("main", "Порт для приема данных по протоколу UDP."),
-                             "8001",
-                             "8001");
+                             "9001",
+                             "9001");
   
   clo << QCommandLineOption (QStringList() << "path" << "path_to_archive",
                              QCoreApplication::translate("main", "Путь к каталогу архива."),

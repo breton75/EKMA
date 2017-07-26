@@ -25,6 +25,7 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   
     p.source = parser.value("source").toLower() == "archive" ? svgawdg::archive : svgawdg::udp;                                      
     p.ip = QHostAddress(parser.value("ip")).toIPv4Address();
+    qDebug() << parser.value("ip") << p.ip;
     p.port = parser.value("port").toUInt();
     p.archive_path = parser.value("path");
     p.painter_bkgnd_color = QColor(parser.value("bcolor"));
@@ -43,7 +44,7 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
     
     p.source = AppParams::readParam(this, "PARAMS", "source", svgawdg::udp).toInt();
     p.ip = AppParams::readParam(this, "PARAMS", "ip", QHostAddress("127.0.0.1").toIPv4Address()).toUInt();
-    p.port = AppParams::readParam(this, "PARAMS", "port", 8001).toUInt();
+    p.port = AppParams::readParam(this, "PARAMS", "port", 9001).toUInt();
     p.archive_path = AppParams::readParam(this, "PARAMS", "archive_path", "./archive").toString();
     p.painter_bkgnd_color = QColor(AppParams::readParam(this, "PARAMS", "painter_bkgnd_color", "#000000").toString());
     p.painter_data_color = QColor(AppParams::readParam(this, "PARAMS", "painter_data_color", "#FFFF00").toString());

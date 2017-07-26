@@ -9,6 +9,7 @@
 
 #include "../../svlib/sv_log.h"
 #include "../general/sv_gathread.h"
+#include "../../svlib/sv_settings.h"
 
 namespace Ui {
 class MainWindow;
@@ -39,6 +40,8 @@ private:
   QStringList _files;
   
   QLabel *_lblStatus;
+  
+  QDir _dir;
   
 signals:
   void thread_udp_started(bool started);

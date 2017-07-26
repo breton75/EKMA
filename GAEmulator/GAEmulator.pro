@@ -8,7 +8,7 @@ QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = GAEmulator
+TARGET = gaemulator
 TEMPLATE = app
 CONFIG += c++11
 
@@ -29,10 +29,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
         mainwindow.cpp \
     ../general/sv_gathread.cpp \
-    ../../svlib/sv_log.cpp
+    ../../svlib/sv_log.cpp \
+    ../../svlib/sv_settings.cpp
 
 HEADERS  += mainwindow.h \
     ../general/sv_gathread.h \
-    ../../svlib/sv_log.h
+    ../../svlib/sv_log.h \
+    ../../svlib/sv_settings.h
 
 FORMS    += mainwindow.ui

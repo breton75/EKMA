@@ -3,7 +3,7 @@ QT -= gui
 
 CONFIG += c++11
 
-TARGET = RLS_archiver
+TARGET = rlsarchiver
 CONFIG += console
 CONFIG -= app_bundle
 CONFIG += c++11

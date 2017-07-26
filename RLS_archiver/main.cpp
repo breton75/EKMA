@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
   
   SvRlsArchiver *rls_archiver = nullptr;
   
-  if(parser.isSet("start")) {
+  if(parser.isSet("autostart")) {
     rls_archiver = new SvRlsArchiver(&params, 0);
     rls_archiver->start();
   }

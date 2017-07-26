@@ -8,7 +8,7 @@ QT       += core gui network printsupport
 #CONFIG += console
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = GA
+TARGET = gaviewer
 TEMPLATE = app
 CONFIG += c++11
 
