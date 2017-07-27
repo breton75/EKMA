@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
                              QCoreApplication::translate("main", "Размер дисплея в точках. По умолчанию 640x640"),
                              "640",
                              "640");  
-  clo.last().setFlags(QCommandLineOption::HiddenFromHelp);
+//  clo.last().setFlags(QCommandLineOption::HiddenFromHelp);
   
   clo << QCommandLineOption (QStringList() << "buffer" << "buffer_point_count",
                              QCoreApplication::translate("main", "Размер буфера отображения в точках. Возможные значения 48000, 24000, 16000, 12000, 8000, 6000, 4000, 2000. По умолчанию 48000"),

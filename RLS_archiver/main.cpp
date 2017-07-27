@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
                              "8001",
                              "8001");  
 
-  clo << QCommandLineOption ("start", QCoreApplication::translate("main", "Запуск архивации при запуске программы.\n"));
+  clo << QCommandLineOption ("autostart", QCoreApplication::translate("main", "Запуск архивации при запуске программы.\n"));
   
   
   for(QCommandLineOption o: clo)
