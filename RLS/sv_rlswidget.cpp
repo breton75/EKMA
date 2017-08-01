@@ -286,7 +286,6 @@ void SvRlsWidget::_setupUI()
           _hlayMain->addWidget(_gbParams);
   
 
-
   // retranslateUi
   _bnStartStopUDP->setText(QApplication::translate("Form", "\320\241\321\202\320\260\321\200\321\202", Q_NULLPTR));
   _gbParams->setTitle(QString());
@@ -449,6 +448,8 @@ SvRlsPainter::SvRlsPainter(void *buffer, const SvRlsWidgetParams *params)
 {
   _params = params;
   _buffer = buffer;
+  
+  resize(_params->display_point_count, _params->display_point_count);
   
   _data_angle_step = double(2 * M_PI) / double(AZIMUTHS_COUNT);
   _indicator_angle_step = 360.0 / AZIMUTHS_COUNT; // 16 * 360

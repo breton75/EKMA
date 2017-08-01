@@ -12,4 +12,8 @@
         <file>icons/Zoom in.ico</file>
         <file>icons/Zoom out.ico</file>
     </qresource>
+    <qresource prefix="/appicons">
+        <file>icons/Sound.ico</file>
+        <file>icons/rls.ico</file>
+    </qresource>
 </RCC>

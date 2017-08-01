@@ -40,3 +40,6 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui
 
 INCLUDEPATH += ../general
+
+RESOURCES += \
+    ../general/qq.qrc

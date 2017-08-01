@@ -7,6 +7,9 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
 {
   ui->setupUi(this);
   
+  setWindowIcon(QIcon(":/appicons/icons/Sound.ico"));
+  setWindowTitle(tr("Отображение данных гидроакустики"));
+  
   /* параметры главного окна */
   AppParams::WindowParams window_params = AppParams::readWindowParams(this);
   this->resize(window_params.size);
@@ -25,7 +28,6 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   
     p.source = parser.value("source").toLower() == "archive" ? svgawdg::archive : svgawdg::udp;                                      
     p.ip = QHostAddress(parser.value("ip")).toIPv4Address();
-    qDebug() << parser.value("ip") << p.ip;
     p.port = parser.value("port").toUInt();
     p.archive_path = parser.value("path");
     p.painter_bkgnd_color = QColor(parser.value("bcolor"));
@@ -60,6 +62,13 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   _ga_widget->setParent(this);
       
   ui->vlayMain->addWidget(_ga_widget);
+  
+  
+  if(p.no_controls)
+    resize(_ga_widget->painterSize().width() + 40, height()); // _ga_widget->painterSize().height() + 72);
+  
+  else
+    resize(_ga_widget->painterSize().width() + 40 + 250, height()); //_ga_widget->painterSize().height() + 72);
   
   connect(this, SIGNAL(thread_udp_started()), _ga_widget, SLOT(startedUdp()));
   connect(this, SIGNAL(thread_udp_stopped()), _ga_widget, SLOT(stoppedUdp()));

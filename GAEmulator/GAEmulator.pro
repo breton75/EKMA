@@ -38,3 +38,6 @@ HEADERS  += mainwindow.h \
     ../../svlib/sv_settings.h
 
 FORMS    += mainwindow.ui
+
+RESOURCES += \
+    ../general/qq.qrc

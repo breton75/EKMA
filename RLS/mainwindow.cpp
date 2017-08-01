@@ -7,6 +7,9 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
 {
   ui->setupUi(this);
   
+  setWindowIcon(QIcon(":/appicons/icons/rls.ico"));
+  setWindowTitle(tr("Отображение данных РЛС"));
+  
   /* параметры главного окна */
   AppParams::WindowParams window_params = AppParams::readWindowParams(this);
   this->resize(window_params.size);
@@ -65,6 +68,13 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   
   ui->vlayMain->addWidget(_rls_widget);
   
+  if(p.no_controls)
+    resize(_rls_widget->painterSize().width() + 40, _rls_widget->painterSize().height() + 72);
+  
+  else
+    resize(_rls_widget->painterSize().width() + 40 + 250, _rls_widget->painterSize().height() + 72);
+  
+ 
   connect(this, SIGNAL(thread_udp_started()), _rls_widget, SLOT(startedUdp()));
   connect(this, SIGNAL(thread_udp_stopped()), _rls_widget, SLOT(stoppedUdp()));
   connect(this, SIGNAL(thread_archive_started()), _rls_widget, SLOT(startedArchive()));

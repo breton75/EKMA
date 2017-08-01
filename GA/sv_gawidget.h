@@ -215,6 +215,8 @@ public:
   svgawdg::SvGAPainter *painter() { return _ga_painter; }
   svgawdg::SvGAWidgetParams params() { return _params; }
   
+  QSize painterSize() { return QSize(_ga_painter->width(), _ga_painter->height()); }
+  
 public slots:
   void startedUdp();
   void stoppedUdp();

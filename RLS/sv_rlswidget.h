@@ -136,6 +136,8 @@ public:
   SvRlsPainter *painter() { return _rls_painter; }
   SvRlsWidgetParams params() { return _params; }
   
+  QSize painterSize() { return QSize(_rls_painter->width(), _rls_painter->height()); }
+  
 public slots:
   void startedUdp();
   void stoppedUdp();
