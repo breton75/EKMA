@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->setupUi(this);
   
   setWindowIcon(QIcon(":/appicons/icons/Sound.ico"));
-  setWindowTitle(tr("Эмулятор гидроакустических устройств"));
+  setWindowTitle(QString("Эмулятор гидроакустических устройств v.").arg(APP_VERSION));
   
   /* параметры главного окна */
   AppParams::WindowParams window_params = AppParams::readWindowParams(this);

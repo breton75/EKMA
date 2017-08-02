@@ -12,7 +12,8 @@ TARGET = gaemulator
 TEMPLATE = app
 CONFIG += c++11
 
-VERSION = 1.0.0    # major.minor.patch
+VERSION = 1.0.1    # major.minor.patch
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
