@@ -10,7 +10,8 @@ int main(int argc, char *argv[])
   QCommandLineParser parser;
   parser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
   
-  parser.setApplicationDescription("\nОтображение информации от РЛС.");
+  parser.setApplicationDescription(QString("\nОтображение информации от РЛС v.%1")
+                                   .arg(APP_VERSION));
 
   const QCommandLineOption helpOption = parser.addHelpOption();
   const QCommandLineOption versionOption = parser.addVersionOption();
@@ -74,12 +75,12 @@ int main(int argc, char *argv[])
   }
   
   if (parser.isSet(versionOption)) {
-    qCritical() << QCoreApplication::applicationVersion() << endl;
+    qInfo() << APP_VERSION << endl;
     return 0;
 }
 
   if (parser.isSet(helpOption)) {
-    qCritical() << parser.helpText() << endl;
+    qInfo() << parser.helpText() << endl;
     return 0;
 }
   

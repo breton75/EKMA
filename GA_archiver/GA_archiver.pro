@@ -11,6 +11,7 @@ CONFIG += c++11
 TEMPLATE = app
 
 VERSION = 1.0.0    # major.minor.patch
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 SOURCES += main.cpp \
     ../general/sv_gathread.cpp

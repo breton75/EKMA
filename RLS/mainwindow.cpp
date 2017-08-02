@@ -8,7 +8,7 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   ui->setupUi(this);
   
   setWindowIcon(QIcon(":/appicons/icons/rls.ico"));
-  setWindowTitle(tr("Отображение данных РЛС v.%1").arg(APP_VERSION));
+  setWindowTitle(tr("Отображение данных РЛС %1").arg(APP_VERSION));
 
   /* параметры главного окна */
   AppParams::WindowParams window_params = AppParams::readWindowParams(this);

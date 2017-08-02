@@ -8,7 +8,7 @@ MainWindow::MainWindow(QCommandLineParser &parser, QWidget *parent) :
   ui->setupUi(this);
   
   setWindowIcon(QIcon(":/appicons/icons/Sound.ico"));
-  setWindowTitle(tr("Отображение данных гидроакустики v.").arg(APP_VERSION));
+  setWindowTitle(tr("Отображение данных гидроакустики %1").arg(APP_VERSION));
   
   /* параметры главного окна */
   AppParams::WindowParams window_params = AppParams::readWindowParams(this);

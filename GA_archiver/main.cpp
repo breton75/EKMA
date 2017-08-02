@@ -23,13 +23,13 @@ int main(int argc, char *argv[])
   QTextStream qtin(stdin);
   QTextStream qtout(stdout);
   
-  
   QCoreApplication a(argc, argv);
   
   QCommandLineParser parser;
   parser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
   
-  parser.setApplicationDescription("\nАрхивация и ретрансляция гидроакустических данных по протоколу UDP.");
+  parser.setApplicationDescription(QString("\nАрхивация и ретрансляция гидроакустических данных по протоколу UDP v.%1")
+                                   .arg(APP_VERSION));
   
   const QCommandLineOption helpOption = parser.addHelpOption();
   const QCommandLineOption versionOption = parser.addVersionOption();
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
   }
 
   if (parser.isSet(versionOption)) {
-    qtout << QCoreApplication::applicationVersion() << endl;
+    qtout << APP_VERSION << endl;
     return 0;
 }
 
