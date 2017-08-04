@@ -2,6 +2,8 @@
 
 #include "../../svlib/sv_fnt.h"
 
+extern SvSQLITE *SQLITE;
+
 /** *******  данные от РЛС  ************ **/
 SvGAThread::SvGAThread(void *buffer,
                        quint32 ip,
@@ -66,12 +68,13 @@ void SvGAThread::run()
 }
 
 /** **********  АРХИВАЦИЯ ДАННЫХ РЛС  ********** **/
-SvGAArchiver::SvGAArchiver(SvGAArchiverParams *params, 
+SvGAArchiver::SvGAArchiver(SvGAArchiverParams *params, SvSQLITE *sqlite, 
                              QObject *parent) 
 {
   setParent(parent);
   
   _params = params;
+  _sqlite = sqlite;
   
   _file_duration_sec = params->file_duration.hour() * 3600 + 
                              params->file_duration.minute() * 60 + 
@@ -123,6 +126,13 @@ void SvGAArchiver::run()
         qDebug() << QString("Total record time %1 elapsed")
                             .arg(_params->total_duration.toString("hh:mm:ss"));
         emit TotalTimeElapsed();
+        
+//        if(_sqlite) {
+//          _sqlite->execSQL(QString("update files set dateend= '%1' where filename = '%2'")
+//                           .arg(QDate::currentDate().toString("YYYY-MM-DD"))
+//                           .arg(_current_file_name));
+//        }
+        
         _playing = false;
         break;
       }
@@ -137,6 +147,12 @@ void SvGAArchiver::run()
 
       _new_file = true;
       emit FileTimeElapsed();
+      
+//      if(_sqlite) {
+//        _sqlite->execSQL(QString("update files set dateend= '%1' where filename = '%2'")
+//                         .arg(QDate::currentDate().toString("YYYY-MM-DD"))
+//                         .arg(_current_file_name));
+//      }
     }
     
     /******** открываем новый файл для записи **********/
@@ -144,13 +160,13 @@ void SvGAArchiver::run()
     {      
       re.date_time = QDateTime::currentDateTime();
       
-      QString file_name = svfnt::get_file_path(_params->path, _params->file_name_template, re);
-      file_name += _ext;
+      _current_file_name = svfnt::get_file_path(_params->path, _params->file_name_template, re);
+      _current_file_name += _ext;
       
-      _file = new QFile(file_name);
+      _file = new QFile(_current_file_name);
       if(!_file->open(QIODevice::WriteOnly))
       {
-        qDebug() << "Cant open file for writing" << file_name;
+        qDebug() << "Cant open file for writing" << _current_file_name;
         _playing = false;
         break;
       }
@@ -163,7 +179,13 @@ void SvGAArchiver::run()
       _new_file = false;
       _new_header = true;
       
-      qDebug() << "Writing to file: " << file_name;
+      qDebug() << "Writing to file: " << _current_file_name;
+      
+//      if(_sqlite) {
+//        _sqlite->execSQL(QString("insert into files (datebegin, filename) values('%1', '%2');")
+//                         .arg(re.date_time.toString("YYYY-MM-DD"))
+//                         .arg(_current_file_name));
+//      }
       
     }
     

@@ -11,7 +11,7 @@
 #include "time.h"
 #include <QDataStream>
 
-
+#include "../../svlib/sv_sqlite.h"
 
 #pragma pack(push,1)
 struct StandartRLS {
@@ -103,7 +103,7 @@ class SvGAArchiver : public QThread
 {
     Q_OBJECT
   public:
-    explicit SvGAArchiver(SvGAArchiverParams *params, QObject *parent);
+    explicit SvGAArchiver(SvGAArchiverParams *params, SvSQLITE *sqlite, QObject *parent);
     
     ~SvGAArchiver() { deleteLater(); }
     
@@ -126,6 +126,9 @@ class SvGAArchiver : public QThread
     
     bool _new_file;
     bool _new_header;
+    
+    SvSQLITE *_sqlite;
+    QString _current_file_name;
     
     QString _ext = ".ga";
     

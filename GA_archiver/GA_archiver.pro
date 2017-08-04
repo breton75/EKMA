@@ -1,4 +1,4 @@
-QT += core network
+QT += core network sql
 QT -= gui
 
 CONFIG += c++11
@@ -14,7 +14,9 @@ VERSION = 1.0.0    # major.minor.patch
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 SOURCES += main.cpp \
-    ../general/sv_gathread.cpp
+    ../general/sv_gathread.cpp \
+    ../../svlib/sv_sqlite.cpp \
+    ../general/sv_cleanupthread.cpp
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -29,5 +31,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 HEADERS += \
     ../general/sv_gathread.h \
-    ../../svlib/sv_fnt.h
+    ../../svlib/sv_fnt.h \
+    ../../svlib/sv_sqlite.h \
+    ../general/sv_cleanupthread.h
 

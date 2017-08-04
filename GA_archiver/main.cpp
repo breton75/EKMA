@@ -2,13 +2,21 @@
 #include <QCommandLineParser>
 #include "stdio.h"
 #include <QTextCodec>
+#include <QProcess>
+#include <QTimer>
 
 #include "../general/sv_gathread.h"
+#include "../general/sv_cleanupthread.h"
+#include "../../svlib/sv_sqlite.h"
+
+extern SvSQLITE *SQLITE;
 
 SvGAArchiverParams params;
 
-void setParams(QCommandLineParser *parser);
+QTimer cleanupTimer();
 
+void setParams(QCommandLineParser *parser);
+void cleanup();
 
 int main(int argc, char *argv[])
 {
@@ -92,6 +100,14 @@ int main(int argc, char *argv[])
 
   clo << QCommandLineOption ("autostart", QCoreApplication::translate("main", "Запуск архивации при запуске программы.\n"));
   
+  clo << QCommandLineOption ("cleanup",
+                             QCoreApplication::translate("main", "Удалять файлы архива старше [n] дней. По умолчанию 7.\n"),
+                             "7",
+                             "7");
+  
+  QCommandLineOption nocleanupOption("nocleanup", QCoreApplication::translate("main", "Не удалять устаревшие файлы из архива.\n"));
+  clo << nocleanupOption;
+  
   
   for(QCommandLineOption o: clo)
     parser.addOption(o);
@@ -125,12 +141,80 @@ int main(int argc, char *argv[])
     return -1;
   }
 
+  /* если не стоит флажок 'не удалять старые файлы', то готовимся к работе с БД */
+  SvCleanupThread *cleanup_thr = nullptr;
+  SQLITE = nullptr;
+  
+  if(!parser.isSet(nocleanupOption)) {
+  
+    /* проверяем наличие БД */
+    QString dbFileName = QString("%1/%2.sqlite")
+                         .arg(QCoreApplication::applicationDirPath())
+                         .arg(QCoreApplication::applicationName());
+    
+    QFile fbd(dbFileName);
+    if(!fbd.exists()) {
+      qtout << QString("Файл базы данных не найден. Создаем новый.\n").toUtf8();
+      
+      QString cmd = QString("sqlite3 %1 "
+                            "\"create table files (\n"
+                            "     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n"
+                            "     text filename,\n"
+                            "     text date_begin,\n"
+                            "     text date_end);\"\n")
+                    .arg(dbFileName);
+      
+      qtout << cmd << '\n';
+    
+      QProcess* p = new QProcess();
+      p->start(QString(cmd));
+      
+      if(!p->waitForStarted()) {
+        p->close();
+        delete p;
+        qtout << QString("Не удалось выполнить команду.\n").toUtf8() << '\n';
+        return -1;
+      }
+      
+      if(!p->waitForFinished(1000)) {
+        QByteArray errb = p->readAllStandardError();  
+        p->close();
+        delete p;
+        qtout << errb << '\n';
+        return -1;
+      }
+    }
+    
+    SQLITE = new SvSQLITE(0, dbFileName);
+    QSqlError err = SQLITE->connectToDB();
+    
+    if(err.type() != QSqlError::NoError) {
+      qtout << err.databaseText();
+      return -1;
+    }
+    
+    int cleanup_period = parser.value("cleanup").toInt();
+    cleanup_thr = new SvCleanupThread(SQLITE, cleanup_period);
+    cleanup_thr->start();
+    
+  }
+  
+  
+  QSqlQuery* q = new QSqlQuery(SQLITE->db);
+  if(QSqlError::NoError != SQLITE->execSQL(QString("select * from files"), q).type())
+  {
+    qtout << q->lastError().databaseText();
+    q->finish();
+    return -1;
+  }
+  
+  
   setParams(&parser);
   
   SvGAArchiver *ga_archiver = nullptr;
   
   if(parser.isSet("autostart")) {
-    ga_archiver = new SvGAArchiver(&params, 0);
+    ga_archiver = new SvGAArchiver(&params, SQLITE, 0);
     ga_archiver->start();
   }
   
@@ -164,7 +248,7 @@ int main(int argc, char *argv[])
         
         qtout << "Starting archiving" << endl;
         
-        ga_archiver = new SvGAArchiver(&params, 0);
+        ga_archiver = new SvGAArchiver(&params, SQLITE, 0);
         ga_archiver->start();
       }
       
@@ -202,4 +286,9 @@ void setParams(QCommandLineParser *parser)
 //  params. = parser->value("");
 
    
+}
+
+void cleanup()
+{
+  
 }
